@@ -1,0 +1,132 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<form asp-action="AddProject" id="addProjectForm" asp-controller="CurrentProjects" method="post" enctype="multipart/form-data">
+    <div class="project_card_div">
+        <div>
+            <h3>Название проекта</h3>
+            <input type="text" id="projectName" class="form-control" placeholder="Введите название проекта">
+        </div>
+        <div>
+            <h3>Дэдлайн</h3>
+            <input type="date" id="deadLine" class="form-control">
+        </div>
+        <div>
+            <h3>Клиент</h3>
+            <select id="select-Clients" class="form-select select-Clients">
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-dark table-striped table-bordered text-center align-middle items">
+        <thead>
+            <tr>
+                <th>Тип</th>
+                <th>Имя</th>
+                <th>Файл</th>
+                <th>Эскиз</th>
+                <th>Тираж</th>
+                <th>Срок</th>
+                <th>Цена</th>
+                <th>Материалы</th>
+                <th>Цвета</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="addItemTable">
+            <tr>
+                <td>
+                    <select name="items[0].itemType" id="itemTypeSelect" class="form-select">
+                        <option selected value="Медаль">Медаль</option>
+                        <option value="Статуэтка">Статуэтка</option>
+                        <option value="Брелок">Брелок</option>
+                    </select>
+                </td>
+                <td><input type="text" name="items[0].itemName" class="form-control"></td>
+                <td><input type="file" name="items[0].sketch" id="fileInputFirst" class="form-control"></td>
+                <td ><img id="imgFirst"/></td>
+                <td><input type="number" name="items[0].itemCount" class="form-control"></td>
+                <td><input type="date" name="items[0].itemDeadline" class="form-control"></td>
+                <td><input type="number" name="items[0].itemPrice" class="form-control"></td>
+                <td>
+                    <select id="select-Materials" name="items[0].materials" multiple>               
+                    </select>
+                     <button type="button" onclick="showInput('materials')">+</button>
+                    <div id="input-materials" style="display: none;">
+                        <input type="text" id="new-Materials" placeholder="Введите название" />
+                        <button type="button" onclick="addOption('Materials')">Добавить</button>
+                    </div>
+                </td>
+                <td>
+                    <select id="select-Colors" name="items[0].colors" multiple>           
+                    </select>
+                      <button type="button" onclick="showInput('Colors')">+</button>
+                    <div id="input-Colors" style="display: none;">
+                        <input type="text" id="new-Colors" placeholder="Введите название" />
+                        <button type="button" onclick="addOption('Colors')">Добавить</button>
+                    </div>
+                </td>
+                <td><input type="text" name="items[0].itemDescription" class="form-control"></td>
+                <td>
+                    <!-- Кнопка удаления (картинка крестика) -->
+                    <button type="button" class="remove-item" id="remove-item" class="btn btn-danger remove-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" id="addItem" class="btn btn-primary">Добавить строчку</button>
+
+    <div class="project_card_div">
+        <h3>Мастер</h3>
+        <select id="select-Employees" class="form-select select-Employees">
+        </select>
+    </div>
+    <h3>Макеты</h3>
+    <input type="file" class="form-control" id="ProjectFiles" name="ProjectFiles" multiple>
+     <h3>Документы</h3>
+    <input type="file" class="form-control" id="ProjectDocuments" name="ProjectDocuments" multiple>
+
+    @*  <table class="table table-dark table-striped table-bordered text-center align-middle files">
+        <thead>
+            <tr>
+                <th>Тип</th>               
+                <th>Файл</th>               
+            </tr>
+        </thead>
+        <tbody id="addFileTable">
+            <tr>
+                <td><p name="file[0].FileType">макет CDR общий</p></td>          
+                <td><input type="file" name="files[0].FilePath" class="form-control"></td>
+            <tr>
+                <td><p name="file[1].FileType">макет PDF</p></td>
+                <td><input type="file" name="files[1].FilePath" class="form-control"></td>
+            </tr>
+              <tr>
+                <td><p name="file[2].FileType">фрезеровка</p></td>
+                <td><input type="file" name="files[2].FilePath" class="form-control"></td>
+            </tr>
+            <tr>
+                <td><p name="file[3].FileType">лазер</p></td>
+                <td><input type="file" name="files[3].FilePath" class="form-control"></td>
+            </tr>
+            <tr>
+                <td><p name="file[4].FileType">уф</p></td>
+                <td><input type="file" name="files[4].FilePath" class="form-control"></td>
+            </tr>
+        </tbody>
+    </table> *@
+ 
+    <button type="submit" class="btn btn-success">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
+</form>
+
+@section Scripts {
+    <script src="js/AddProject.js" defer></script>
+}

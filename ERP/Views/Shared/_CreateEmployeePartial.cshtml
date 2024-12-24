@@ -1,0 +1,37 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model ERP.ViewModels.CreateEmployeeViewModel
+
+<form asp-action="AddEmployee" id="AddEmployeeForm" asp-controller="CurrentProjects" method="post">
+    <svg class="close-btn" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+
+    <input id="EmployeeName" asp-for="EmployeeName" name="EmployeeName" placeholder="Имя" type="text" required>
+
+    <input id="PhoneNumber" asp-for="PhoneNumber" name="PhoneNumber" placeholder="Телефон" type="text" required>
+
+    <input id="Email" asp-for="Email" name="Email" placeholder="Почта" type="email" required>
+
+    <input id="Passport" asp-for="Passport" name="Passport" placeholder="паспорт" type="text" required>
+
+   @*  <label for="positionSelect">Должность</label> *@
+  @*  <span>Должность</span> *@
+    <select asp-for="Position" id="positionSelect" required>
+        <option value="Должность">Должность</option>
+        <option value="Мастер">Мастер</option>
+        <option value="Дизайнер">Дизайнер</option>
+        <option value="Менеджер на телефоне">Менеджер на телефоне</option>
+    </select>
+
+    <input asp-for="Password" id="EmployeePassword" name="Password" placeholder="Пароль" type="text" required>
+@* 
+    <input id="StartWork" name="StartWork" type="date"> *@
+
+    <button type="submit" id="addEmployee" class="btn btn-primary">Добавить сотрудника</button>
+</form>

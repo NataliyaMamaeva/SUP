@@ -1,0 +1,86 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+ @model ERP.ViewModels.ClientViewModel  
+
+<form asp-action="AddClient" id="addClientForm" asp-controller="CurrentProjects" method="post" enctype="multipart/form-data">
+    <svg class="close-btn" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+
+    <input type="text" id="ClientTitle" name="model.ClientTitle" asp-for="ClientTitle" class="form-control" placeholder="Название">
+    <input type="text" id="City" name="model.City" asp-for="City" class="form-control" placeholder="Город">
+    <input type="date" id="FirstContact" name="model.FirstContact" asp-for="FirstContact" class="form-control" placeholder="первое обращение">
+
+    <table class="table table-dark table-striped table-bordered text-center align-middle ">
+        <thead>
+                <th>Имя</th>
+                <th>Телефон</th>
+                <th>почта</th>
+                <th>удалить</th>
+        </thead>
+        <tbody id="addContactsTable">
+            <tr>
+                <td><input type="text" name="model.contacts[0].Name" class="form-control" placeholder="Имя"> </td>
+                <td><input type="text" name="model.contacts[0].Phone" class="form-control" placeholder="Телефон"> </td>
+                <td><input type="text" name="model.contacts[0].Email" class="form-control" placeholder="Почта"> </td>
+                <td>
+                    <button type="button" id="remove-item" class="btn btn-danger remove-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                    </button>
+                </td>
+            </tr>  
+        </tbody>
+    </table>
+    <button type="button" id="addContactRow" class="btn btn-primary add-row-btn">Добавить строчку</button>
+    <table class="table table-dark table-striped table-bordered text-center align-middle addContactsTable">
+        <thead>
+                <th>Адрес</th>
+                <th>удалить</th>
+        </thead>
+        <tbody id="addAddressTable">
+            <tr>
+                <td><input type="text" name="model.address[0].Address" class="form-control" placeholder="Адрес"> </td>
+                <td>
+                    <button type="button" id="remove-item" class="btn btn-danger remove-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" id="addAddressRow" class="btn btn-primary add-row-btn">Добавить строчку</button>
+  @*   <table class="table table-dark table-striped table-bordered text-center align-middle addContactsTable">
+        <thead>
+            <tr>
+                <th>Реквизиты файлом</th>
+                <th>удалить</th>
+            </tr>
+        </thead> *@
+       @*  <tbody id="addRekvizitTable">
+            <tr>
+                <td><input type="file" asp-for="rekvizits" name="model.rekvizits[0]" class="form-control" placeholder="Реквизиты"> </td>
+                <td>
+                    <button type="button"  id="remove-item" class="btn btn-danger remove-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                    </button>
+                </td>
+            </tr> 
+        </tbody>
+    </table>
+    <button type="button" id="addRekvizitRow" class="btn btn-primary add-row-btn">Добавить строчку</button> *@
+
+        <h3>Реквизиты</h3>
+        <input type="file" class="form-control" id="ClientRekvizit" name="ProjectFiles" multiple>
+    <button type="submit" id="addClient" class="btn btn-primary">Добавить клиента</button>
+</form>

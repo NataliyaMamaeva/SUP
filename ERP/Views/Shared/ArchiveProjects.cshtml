@@ -1,0 +1,77 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Archive_Projects";
+}
+@model List<ERP.ViewModels.ClientProjectsViewModel>
+
+<div class="clients">
+    @foreach (var client in Model)
+    {
+        <div class="client-container">
+            <div class="header client-header" onclick="toggleProjects(this)">
+                <h5>@client.ClientTitle (@client.City)</h5>
+            </div>
+            <div class="client-details hidden">
+                <h5>Проекты:</h5>
+                <div class="master_list client-projects">
+                    @foreach (var project in client.Projects)
+                    {
+                        <div class="project">
+                            <img src="@project.ImagePath" alt="Project Image">
+                            <div class="project_text">
+                                <p>Название: @project.ProjectName</p>
+                                <p>Дата события: @project.EventDate?.ToShortDateString()</p>
+                                <p>Срок сдачи: @project.Deadline?.ToShortDateString()</p>
+                                <p>Сумма оплаты: @project.PaymentTotal?.ToString("C")</p>
+                                <p>Аванс: @project.AdvanceRate?.ToString("P")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <h5>Реквизиты:</h5>
+                <div class="requisites">
+                    @foreach (var requisite in client.Requisites)
+                    {
+                        <div class="requisite-item">
+                            <p><strong>@requisite.FileTitle</strong></p>
+                            <p>Загружен: @requisite.UploadedAt?.ToString("yyyy-MM-dd HH:mm")</p>
+                            <a href="@requisite.FilePath" download>Скачать файл</a>
+                        </div>
+                    }
+                </div>
+
+                <h5>Адреса доставки:</h5>
+                <div class="contacts">
+                    @foreach (var address in client.DeliveryAddresses)
+                    {
+                        <div class="contact-item">
+                            <p>@address.DeliveryAddress</p>
+                        </div>
+                    }
+                </div>
+
+                <h5>Контакты:</h5>
+                <div class="contacts">
+                    @foreach (var contact in client.Contacts)
+                    {
+                        <div class="contact-item">
+                            <p><strong>@contact.ContactName</strong></p>
+                            <p>Телефон: @contact.PhoneNumber</p>
+                            <p>Email: @contact.Email</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function toggleProjects(header) {
+        const details = header.nextElementSibling;
+        details.classList.toggle('hidden');
+    }
+</script>
