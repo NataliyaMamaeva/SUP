@@ -1,159 +1,133 @@
-﻿//document.getElementById('addItem').addEventListener('click', function () {
-//    const tableBody = document.querySelector('#addItemTable');
-//    const rowCount = tableBody.querySelectorAll('tr').length;
-
-//    // Создаём новую строку
-//    let tr = document.createElement('tr');
-
-//    // Столбец: Тип элемента
-//    let td1 = document.createElement('td');
-//    let itemTypeSelect = document.createElement('select');
-//    itemTypeSelect.name = `items[${rowCount}].itemType`;
-//    itemTypeSelect.classList.add('form-select');
-//    itemTypeSelect.innerHTML = `
-//        <option value="1">Медаль</option>
-//        <option value="2">Статуэтка</option>
-//        <option value="3">Брелок</option>`;
-//    td1.appendChild(itemTypeSelect);
-//    tr.appendChild(td1);
-
-//    let tdName = document.createElement('td');
-//    let itemNameInput = document.createElement('input');
-//    itemNameInput.type = 'text';
-//    itemNameInput.name = `items[${rowCount}].itemName`;
-//    itemNameInput.classList.add('form-control');
-//    tdName.appendChild(itemNameInput);
-//    tr.appendChild(tdName);
-
-//    // Столбец: Поле загрузки файла
-//    let td2 = document.createElement('td');
-//    let fileInput = document.createElement('input');
-//    fileInput.type = 'file';
-//    fileInput.name = `items[${rowCount}].sketch`;
-//    fileInput.classList.add('form-control');
-//    td2.appendChild(fileInput);
-//    tr.appendChild(td2);
-
-//    // Столбец: Превью изображения
-//    let td3 = document.createElement('td');
-//    let img = document.createElement('img');
-//    img.src = '';
-//    img.style.width = '100px';
-//    img.style.height = 'auto';
-//    td3.appendChild(img);
-//    tr.appendChild(td3);
-
-//    // Обновляем превью изображения при выборе файла
-//    fileInput.addEventListener('change', function () {
-//        const file = fileInput.files[0];
-//        if (file) {
-//            const reader = new FileReader();
-//            reader.onload = function (e) {
-//                img.src = e.target.result;
-//            };
-//            reader.readAsDataURL(file);
-//        }
-//    });
-
-//    // Столбец: Количество
-//    let td4 = document.createElement('td');
-//    let itemCountInput = document.createElement('input');
-//    itemCountInput.type = 'number';
-//    itemCountInput.name = `items[${rowCount}].itemCount`;
-//    itemCountInput.classList.add('form-control');
-//    td4.appendChild(itemCountInput);
-//    tr.appendChild(td4);
-
-//    // Столбец: Дата завершения
-//    let td5 = document.createElement('td');
-//    let itemDeadlineInput = document.createElement('input');
-//    itemDeadlineInput.type = 'date';
-//    itemDeadlineInput.name = `items[${rowCount}].itemDeadline`;
-//    itemDeadlineInput.classList.add('form-control');
-//    td5.appendChild(itemDeadlineInput);
-//    tr.appendChild(td5);
-
-//    // Столбец: Цена
-//    let td6 = document.createElement('td');
-//    let itemPriceInput = document.createElement('input');
-//    itemPriceInput.type = 'number';
-//    itemPriceInput.name = `items[${rowCount}].itemPrice`;
-//    itemPriceInput.classList.add('form-control');
-//    td6.appendChild(itemPriceInput);
-//    tr.appendChild(td6);
-
-//    // Столбец: Материалы
-//    let td7 = document.createElement('td');
-//    let materialsSelect = document.createElement('select');
-//    materialsSelect.name = `items[${rowCount}].materials`;
-//    materialsSelect.id = 'itemMaterials';
-//    materialsSelect.multiple = true;
-//    materialsSelect.innerHTML = `
-//        <option>Стекло</option>
-//        <option>Металл</option>
-//        <option>Дерево</option>
-//        <option>Бетон</option>`;
-//    td7.appendChild(materialsSelect);
-//    tr.appendChild(td7);
-
-//    // Столбец: Цвета
-//    let td8 = document.createElement('td');
-//    let colorsSelect = document.createElement('select');
-//    colorsSelect.name = `items[${rowCount}].colors`;
-//    colorsSelect.id = 'itemColors';
-//    colorsSelect.multiple = true;
-//    colorsSelect.innerHTML = `
-//        <option>Синий_Кобальт</option>
-//        <option>Золотой</option>
-//        <option>Красный</option>
-//        <option>Серый</option>`;
-//    td8.appendChild(colorsSelect);
-//    tr.appendChild(td8);
-
-//    // Столбец: Описание
-//    let td9 = document.createElement('td');
-//    let itemDescriptionInput = document.createElement('input');
-//    itemDescriptionInput.type = 'text';
-//    itemDescriptionInput.name = `items[${rowCount}].itemDescription`;
-//    itemDescriptionInput.classList.add('form-control');
-//    td9.appendChild(itemDescriptionInput);
-//    tr.appendChild(td9);
-
-//    let td10 = document.createElement('td');
-//    let deleteButton = document.createElement('button');
-//    deleteButton.innerHTML = ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
-//    <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
-//                    </svg > `;
-//    deleteButton.addEventListener('click', function () {
-//        tableBody.removeChild(tr);
-//    });
-//    td10.appendChild(deleteButton);
-//    tr.appendChild(td10);
-
-//    // Добавляем строку в таблицу
-//    tableBody.appendChild(tr);
-//});
-
-//document.querySelectorAll('.remove-item').forEach(button => {
-//    button.addEventListener('click', function () {
-//        const row = button.closest('tr');  // Находим строку таблицы (родитель для кнопки)
-//        row.remove();  // Удаляем строку
-//    });
-//});
+﻿
 
 
-
-
-$('.project').click(function () {
-    console.log(" $('.project').click");
-    $('#projectData').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
-
-    $('.popup_before').click(function () {
-        $('#projectData').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-    });
+document.addEventListener("DOMContentLoaded", () => {   
+    loadEmployeesWithProjects();
+    loadProjectsQuery();
 });
+
+function loadProjectsQuery() {
+    fetch('/GetProjectsQuery')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+
+            const queryContainer = document.getElementById("newProjectsContainer");         
+            data.forEach( project => {
+                    const projectDiv = document.createElement("div");
+                    projectDiv.className = "project";
+
+                    const projectImage = document.createElement("img");
+                    projectImage.src = project.sketchPath ? project.sketchPath : "images/default.jpg";
+                    projectImage.alt = project.projectName;
+                    projectDiv.appendChild(projectImage);
+
+                    const projectText = document.createElement("div");
+                    projectText.className = "project_text";
+
+                    const projectName = document.createElement("b");
+                    projectName.textContent = `${project.projectName}`;
+                    projectText.appendChild(projectName);
+
+                    const projectQuantity = document.createElement("p");
+                    projectQuantity.textContent = `Тираж: ${project.quantity}`;
+                    projectText.appendChild(projectQuantity);
+
+                    const projectDate = document.createElement("p");
+                    projectDate.textContent = `Дата: ${project.deadline}`;
+                    projectText.appendChild(projectDate);
+
+                    //const projectMaterial = document.createElement("p");
+                    //projectMaterial.textContent = `Материал: ${project.material}`;
+                    //projectText.appendChild(projectMaterial);
+
+                projectDiv.appendChild(projectText);
+                projectDiv.onclick = () => openProjectCard(project.projectId);
+                queryContainer.appendChild(projectDiv);
+                });           
+            }).catch(error => {
+            console.error("Ошибка при загрузке данных:", error);
+        });
+}
+
+function loadEmployeesWithProjects() {
+    fetch('/GetEmployeesWithProjects')
+        .then(response => response.json())
+        .then(data => {
+
+            console.log(data);
+
+            const employeesContainer = document.getElementById("employeesContainer");
+            employeesContainer.innerHTML = "";
+
+            data.forEach(employee => {
+                // Создаём блок для сотрудника
+                const employeeDiv = document.createElement("div");
+                employeeDiv.className = "header";
+
+                const employeeName = document.createElement("h3");
+                employeeName.className = "master_name";
+                employeeName.textContent = employee.employeeName;
+                employeeDiv.appendChild(employeeName);
+
+                // Кнопки сотрудника
+                const planButton = document.createElement("button");
+                planButton.textContent = "планирование задач";
+                planButton.onclick = () => taskPlanner(employee.employeeId); // Функция для планирования задач
+                employeeDiv.appendChild(planButton);
+
+                const salaryButton = document.createElement("button");
+                salaryButton.textContent = "ЗП архив | прогноз";
+                employeeDiv.appendChild(salaryButton);
+
+                // Контейнер для проектов сотрудника
+                const projectList = document.createElement("div");
+                projectList.className = "master_list red"; // Класс можно менять в зависимости от статуса
+                employee.projects.forEach(project => {
+                    const projectDiv = document.createElement("div");
+                    projectDiv.className = "project";
+
+                    const projectImage = document.createElement("img");
+                   // var path = project.sketchPath;
+                   // var correctedPath = path.Replace("\\\\", "\\");
+                    projectImage.src =   project.sketchPath ? project.sketchPath : "images/default.jpg";
+                    projectImage.alt = project.projectName;
+                    projectDiv.appendChild(projectImage);
+
+                    const projectText = document.createElement("div");
+                    projectText.className = "project_text";
+
+                    const projectName = document.createElement("b");
+                    projectName.textContent = `${project.projectName}`;
+                    projectText.appendChild(projectName);
+
+                    const projectQuantity = document.createElement("p");
+                    projectQuantity.textContent = `Тираж: ${project.quantity}`;
+                    projectText.appendChild(projectQuantity);
+
+                    const projectDate = document.createElement("p");
+                    projectDate.textContent = `Дата: ${project.deadline}`;
+                    projectText.appendChild(projectDate);
+
+                    //const projectMaterial = document.createElement("p");
+                    //projectMaterial.textContent = `Материал: ${project.material}`;
+                    //projectText.appendChild(projectMaterial);
+
+                    projectDiv.appendChild(projectText);
+                    projectDiv.onclick = () => openProjectCard(project.projectId);
+                    projectList.appendChild(projectDiv);
+                });
+
+                // Добавляем сотрудника и его проекты в контейнер
+                employeesContainer.appendChild(employeeDiv);
+                employeesContainer.appendChild(projectList);
+            });
+        })
+        .catch(error => {
+            console.error("Ошибка при загрузке данных:", error);
+        });
+}
+
 $('#addProjectButton').click(function () {
     $('#addProject').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
@@ -164,11 +138,298 @@ $('#addProjectButton').click(function () {
     });
 });
 
+///-------------------------------------планнер---------------------------------------------//
+
+let EmployeeId = 0;
+const calendar = document.getElementById("calendar");
+const calendarContainer = document.getElementById("calendarContainer");
+const taskModal = document.getElementById("taskModal");
+const modalTitle = document.getElementById("modalTitle");
+const saveTaskButton = document.getElementById("saveTask");
+const deleteTaskButton = document.getElementById("deleteTask");
+const projectSelect = document.getElementById("taskProjectsSelect");
+
+
+const taskText = document.getElementById("taskText");
+let tasks = []; // Хранилище всех задач
+let currentDate = new Date(); // Текущая дата
+let loadedMonths = new Set(); // Хранение ключей месяцев для избежания дублирования
+
+async function taskPlanner(id) {
+    console.log("taskplanner open div");
+    calendar.innerHTML = '';
+    loadedMonths.clear();
+
+    $('#calendarContainer').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+    $('.popup_before').click(function () {
+        $('#calendarContainer').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+    const response = await fetch(`/GetTasksByEmployeeId?id=${id}`);
+    if (response.ok) {
+        let data =await response.json();
+        console.log(data);
+        tasks = [];
+        // console.log(data);
+        data.forEach(d => {
+            tasks.push(d);
+        });
+        console.log("tasks");
+        console.log(tasks);   
+    }
+    EmployeeId = id;
+    console.log(tasks);
+    loadInitialMonths();
+}
+function getDayOfWeekAdjusted(date){
+    const day = date.getDay();
+    return day === 0 ? 6 : day - 1;
+}
+function formatDate(year, month, day) {
+    const formattedMonth = month.toString().padStart(2, "0"); 
+    const formattedDay = day.toString().padStart(2, "0");   
+    return `${year}-${formattedMonth}-${formattedDay}`;
+}
+function generateMonth(date) {
+    const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+    if (!loadedMonths.has(monthKey))
+        loadedMonths.add(monthKey);
+    else return;  
+
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const weeks = Math.ceil((getDayOfWeekAdjusted(start) + end.getDate()) / 7);
+
+    const monthHeader = document.createElement("div");
+    monthHeader.className = "month-header";
+    monthHeader.innerHTML = `<h2>${date.toLocaleString("default", {
+        month: "long",
+        year: "numeric",
+    })}</h2>`;
+    calendar.appendChild(monthHeader);
+
+    for (let week = 0; week < weeks; week++) {
+        const row = document.createElement("div");
+        row.className = "calendar-row";
+
+        for (let day = 0; day < 7; day++) {
+            const cell = document.createElement("div");
+            cell.className = "empty-calendar-cell";
+
+            const dayNumber = week * 7 + day - getDayOfWeekAdjusted(start) + 1;
+            if (dayNumber > 0 && dayNumber <= end.getDate()) {
+                cell.className = "calendar-cell";
+                
+                if (day == 6 || day == 5) {
+                    cell.className = "weekend";
+                }
+                const taskDate = formatDate(date.getFullYear(), date.getMonth() + 1, dayNumber);
+                cell.setAttribute("data-date", taskDate);
+                cell.innerHTML = `<div>${dayNumber}</div>`;
+                const addButton = document.createElement("button");
+                addButton.className = "add-task-btn";
+                addButton.innerHTML = "+";
+                addButton.onclick = () => openTaskModal( taskDate);
+                cell.appendChild(addButton);           
+                const dayTasks = tasks.filter((task) => task.deadline === taskDate);                
+                for (const task of dayTasks) {             
+                    const taskDiv = createTaskDiv(task);
+                    cell.appendChild(taskDiv);
+                }
+            }
+            row.appendChild(cell);
+        }
+        calendar.appendChild(row);
+    }       
+} 
+function loadInitialMonths() {
+    const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth());
+    generateMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+    generateMonth(currentMonth);
+    generateMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+}
+function createTaskDiv(task) {
+    const taskDiv = document.createElement("div");
+    taskDiv.className = "task-item";
+    taskDiv.style.backgroundColor = task.projectColor;
+    taskDiv.style.padding = "5px";
+    taskDiv.setAttribute("data-task-id", task.taskId);
+    taskDiv.style.margin = "1px";
+    taskDiv.style.borderRadius = "5px";
+    taskDiv.style.borderStyle = "solid";
+    taskDiv.style.borderWidth = "1px";
+    taskDiv.style.cursor = "pointer";
+    taskDiv.innerHTML = task.description;
+    taskDiv.onclick = (e) => {
+        e.stopPropagation();
+        openTaskModal(task.deadline, task);
+    };
+    return taskDiv;
+}
+function addTaskToCalendar(task) {
+    const taskDiv = createTaskDiv(task);  
+    const cell = document.querySelector(`[data-date="${task.deadline}"]`);  
+    if (cell) {
+        cell.appendChild(taskDiv);
+    }
+}
+function removeTaskFromCalendar(taskId) {
+    const taskDiv = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskDiv) {
+        taskDiv.remove();
+    }
+}
+function openTaskModal(date, task = null) {
+    taskModal.style.display = "flex";
+    //taskModal.setAttribute("data-date", date);
+    let select = document.getElementById("taskProjectsSelect");
+    select.innerHTML = '';
+    let option = document.createElement("option");
+    option.text = "задача без проекта";
+    option.value = 0;
+    select.append(option);
+
+    const taskIdInput = document.getElementById("taskIdInput");
+    taskIdInput.value = 0;
+    const taskDate = document.getElementById("taskDate");
+    const taskEmployeeIdInput = document.getElementById("taskEmployeeIdInput");
+
+
+    console.log(" openTaskModal__ EmployeeId  " + EmployeeId);
+    taskEmployeeIdInput.value = EmployeeId;
+    taskDate.value = date;
+
+
+    fetch(`/GetCurrentProjectsByEmployeeId?id=${EmployeeId}`)
+        .then(response => response.json())
+        .then(data => {
+           // console.log(data);
+            data.forEach(d => {
+                let option = document.createElement("option");
+                option.text = d.projectName;
+                option.value = d.projectId;
+                if (task) {
+                    if (task.projectId == option.value) {
+                        option.selected = true;
+                    }
+                }
+                select.append(option);
+            });
+        });
+
+    if (task) {
+        modalTitle.textContent = "Редактировать задачу";
+        taskIdInput.value = task.taskId;
+        taskText.value = task.description;
+       // projectSelect.value = task.projectId;
+        deleteTaskButton.style.display = "inline-block";
+        //deleteTaskButton.onclick = () => deleteTask(task);
+    } else {
+        modalTitle.textContent = "Добавить задачу";
+        taskText.value = "";
+        projectSelect.selectedIndex = 0;
+        deleteTaskButton.style.display = "none";
+    }
+}
+
+document.getElementById("taskForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+    formData.forEach((value, key) => {
+        console.log(key, value);
+    });
+    const response = await fetch('/CurrentProjects/AddTask', {
+        method: 'POST',
+        body: formData
+    });
+    if (response.ok) {
+        const task = await response.json();
+        const existingTaskIndex = tasks.findIndex(t => t.taskId === task.taskId);
+
+        if (existingTaskIndex !== -1) {
+            removeTaskFromCalendar(tasks[existingTaskIndex].taskId);
+            tasks.splice(existingTaskIndex, 1);
+        }
+        tasks.push(task);
+        addTaskToCalendar(task);
+        closeTaskModal();
+    }
+});
+function closeTaskModal() {
+    taskModal.style.display = "none";
+    taskText.value = "";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const deleteTaskButton = document.getElementById("deleteTask");
+
+    if (deleteTaskButton) {
+        deleteTaskButton.addEventListener("click", (event) => {
+            event.preventDefault(); 
+            const taskId = document.getElementById("taskIdInput").value;
+            if (taskId) {
+                deleteTask(taskId);
+            } else {
+                console.error("ID задачи отсутствует!");
+            }
+        });
+    }
+});
+async function deleteTask(id) {
+    tasks = tasks.filter((t) => t.taskId !== id);
+    const response = await fetch(`/CurrentProjects/DeleteTask?id=${id}`);
+    if (response.ok) {
+        console.log("task deleted");
+        removeTaskFromCalendar(id);
+        closeTaskModal();
+    }
+    else {
+        console.log("task delete error");
+    }
+}
+
+// Рендеринг календаря
+//function renderCalendar() {
+//  /*  calendar.innerHTML = "";*/
+//    const dates = Array.from(loadedMonths).map((key) => {
+//        const [year, month] = key.split("-").map(Number);
+//        return new Date(year, month);
+//    });
+//    for (let month of loadedMonths) {
+//        console.log(month);
+//    }
+//    dates.sort((a, b) => a - b);
+//    dates.forEach((date) => generateMonth(date));
+//}
+ 
+calendarContainer.addEventListener("scroll", () => {
+    //if (calendarContainer.scrollTop === 0) {
+    //    console.log("scrollTop");
+    //    const firstLoadedMonth = Array.from(loadedMonths).sort()[0];
+    //    const [year, month] = firstLoadedMonth.split("-").map(Number);
+    //    generateMonth(new Date(year, month - 1));
+    //   // renderCalendar();
+    //} else
+    if (calendarContainer.scrollHeight - calendarContainer.scrollTop - 1 <= calendarContainer.clientHeight) {
+            const lastLoadedMonth = Array.from(loadedMonths).sort().pop();
+            const [year, month] = lastLoadedMonth.split("-").map(Number);
+            generateMonth(new Date(year, month + 1));
+    }
+});
+
+taskModal.addEventListener("click", (e) => {
+    if (e.target === taskModal) closeTaskModal()
+});
+
+
+///---------------------------------------галерея---------------------------------------//
+
 
 
 let galleryImages = [];
 let currentImageIndex = 0;
-
 $('.sketches img').click(function () {
     $('#gallery').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
@@ -180,207 +441,6 @@ $('.sketches img').click(function () {
     //$(this).className.
 
 });
-//////////////////////////дальше планнер
-function taskPlanner() {
-    console.log("taskplanner open div");
-    $('#calendarContainer').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
-
-    $('.popup_before').click(function () {
-        $('#calendarContainer').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-    });
-
-}
-
-const calendar = document.getElementById("calendar");
-const calendarContainer = document.getElementById("calendarContainer");
-const taskModal = document.getElementById("taskModal");
-const modalTitle = document.getElementById("modalTitle");
-const saveTaskButton = document.getElementById("saveTask");
-const deleteTaskButton = document.getElementById("deleteTask");
-const projectSelect = document.getElementById("projectSelect");
-const taskText = document.getElementById("taskText");
-
-let tasks = []; // Хранилище всех задач
-let currentDate = new Date(); // Текущая дата
-//console.log(currentDate);
-let loadedMonths = new Set(); // Хранение ключей месяцев для избежания дублирования
-// Генерация одного месяца
-function generateMonth(date) {
-    const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-    console.log("monthKey");
-    console.log(monthKey);
-    if (!loadedMonths.has(monthKey))
-        loadedMonths.add(monthKey);
-
-    const start = new Date(date.getFullYear(), date.getMonth(), 1);
-    const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-    const weeks = Math.ceil((getDayOfWeekAdjusted(start) + end.getDate()) / 7);
-
-    // Добавляем заголовок месяца
-    const monthHeader = document.createElement("div");
-    monthHeader.className = "month-header";
-    monthHeader.innerHTML = `<h2>${date.toLocaleString("default", {
-        month: "long",
-        year: "numeric",
-    })}</h2>`;
-   /* calendar.appendChild(monthHeader);*/
-
-
-
-    // Генерация строк недель
-    for (let week = 0; week < weeks; week++) {
-        const row = document.createElement("div");
-        row.className = "calendar-row";
-
-        for (let day = 0; day < 7; day++) {
-            const cell = document.createElement("div");
-            cell.className = "calendar-cell";
-
-            const dayNumber = week * 7 + day - getDayOfWeekAdjusted(start) + 1;
-            if (dayNumber > 0 && dayNumber <= end.getDate()) {
-                const taskDate = `${date.getFullYear()}-${date.getMonth()}-${dayNumber}`;
-                cell.innerHTML = `<div>${dayNumber}</div>`;
-                const addButton = document.createElement("button");
-                addButton.className = "add-task-btn";
-                addButton.innerHTML = "+";
-                addButton.onclick = () => openTaskModal(taskDate);
-                cell.appendChild(addButton);
-
-                // Отображаем задачи, если они есть
-                const dayTasks = tasks.filter((task) => task.date === taskDate);
-                for (const task of dayTasks) {
-                    const taskDiv = createTaskDiv(task);
-                    cell.appendChild(taskDiv);
-                }
-            }
-            row.appendChild(cell);
-        }
-
-  /*      calendar.appendChild(row);*/
-    }
-}
-// Создание визуального элемента задачи
-function createTaskDiv(task) {
-    const taskDiv = document.createElement("div");
-    taskDiv.className = "task-item";
-    taskDiv.style.backgroundColor = task.color;
-    taskDiv.style.padding = "5px";
-    taskDiv.style.margin = "1px";
-    taskDiv.style.borderRadius = "5px";
-    taskDiv.style.cursor = "pointer";
-    taskDiv.innerHTML = task.text;
-    taskDiv.onclick = (e) => {
-        e.stopPropagation();
-        openTaskModal(task.date, task);
-    };
-    return taskDiv;
-}
-// Открытие модального окна
-function openTaskModal(date, task = null) {
-    taskModal.style.display = "flex";
-    taskModal.setAttribute("data-date", date);
-
-    if (task) {
-        modalTitle.textContent = "Редактировать задачу";
-        taskText.value = task.text;
-        projectSelect.value = task.project;
-        deleteTaskButton.style.display = "inline-block";
-        deleteTaskButton.onclick = () => deleteTask(task);
-    } else {
-        modalTitle.textContent = "Добавить задачу";
-        taskText.value = "";
-        projectSelect.selectedIndex = 0;
-        deleteTaskButton.style.display = "none";
-    }
-}
-// Закрытие модального окна
-function closeTaskModal() {
-    taskModal.style.display = "none";
-    taskText.value = "";
-}
-// Сохранение задачи
-function saveTask() {
-    const date = taskModal.getAttribute("data-date");
-    const project = projectSelect.value;
-    const color = projectSelect.options[projectSelect.selectedIndex].getAttribute("data-color");
-    const text = taskText.value;
-
-    const existingTask = tasks.find((task) => task.date === date && task.text === text);
-    if (existingTask) {
-        existingTask.project = project;
-        existingTask.color = color;
-        existingTask.text = text;
-    } else {
-        tasks.push({ date, project, color, text });
-    }
-
-    renderCalendar();
-    closeTaskModal();
-}
-// Удаление задачи
-function deleteTask(task) {
-    tasks = tasks.filter((t) => t !== task);
-    renderCalendar();
-    closeTaskModal();
-}
-// Рендеринг календаря
-function renderCalendar() {
-   // calendar.innerHTML = "";
-    const dates = Array.from(loadedMonths).map((key) => {
-        const [year, month] = key.split("-").map(Number);
-        return new Date(year, month);
-    });
-    for (let month of loadedMonths) {
-        console.log(month);
-    }
-    dates.sort((a, b) => a - b);
-    dates.forEach((date) => generateMonth(date));
-}
-// Инициализация первых трёх месяцев
-function loadInitialMonths() {
-    const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth());
-    console.log("currentMonth");
-    console.log(currentMonth);
-    generateMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-    generateMonth(currentMonth);
-    generateMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-}
-const getDayOfWeekAdjusted = (date) => {
-    const day = date.getDay();
-    return day === 0 ? 6 : day - 1; // Перемещаем воскресенье (0) в конец, делая его 6
-};
-// Подгрузка месяцев при прокрутке
-//calendarContainer.addEventListener("scroll", () => {
-//    if (calendarContainer.scrollTop === 0) {
-//        console.log("scrollTop");
-//        const firstLoadedMonth = Array.from(loadedMonths).sort()[0];
-//        const [year, month] = firstLoadedMonth.split("-").map(Number);
-//        generateMonth(new Date(year, month - 2));
-//        renderCalendar();
-//    } else if (calendarContainer.scrollHeight - calendarContainer.scrollTop <= calendarContainer.clientHeight) {
-//        console.log("scrollBottom");
-//        const lastLoadedMonth = Array.from(loadedMonths).sort().pop();
-//        const [year, month] = lastLoadedMonth.split("-").map(Number);
-//        generateMonth(new Date(year, month + 1));
-//        renderCalendar();
-//    }
-//});
-// Слушатели событий
-//saveTaskButton.addEventListener("click", saveTask);
-//taskModal.addEventListener("click", (e) => {
-//    if (e.target === taskModal) closeTaskModal()
-//});
-// Убедимся, что всё отрисовывается после загрузки страницы
-document.addEventListener("DOMContentLoaded", () => {
-    loadInitialMonths();
-    renderCalendar();
-});
-
-
-/////////////////////////галерея 
-
 document.addEventListener('DOMContentLoaded', () => {
     const galleries = document.querySelectorAll('.gallery');
     let currentImageIndex = 0;
@@ -461,23 +521,210 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'ArrowRight') changeImage(1);
     });
 });
-document.querySelectorAll('.plus').forEach(function (plusButton) {
-    plusButton.addEventListener('click', function (event) {
-        event.stopPropagation(); // Останавливаем стандартное поведение для этой картинки
 
-        // Показываем всплывающее окно
-        $('#addImagePopUp').css('visibility', 'visible');
-        $('.popup_before').css('visibility', 'visible');
-        $('.popup_before').css('z-index', '3');
 
-        // Закрытие всплывающего окна при клике на .popup_before
-        $('.close-btn').click(function () {
-            $('#addImagePopUp').css('visibility', 'hidden');
-          //  $('.popup_before').css('visibility', 'hidden');
-            $('.popup_before').css('z-index', '1');
+async function plusClick(fileType, id) {
+
+    // event.stopPropagation();
+
+    $('#addImagePopUp').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+    $('.popup_before').css('z-index', '3');
+
+    $('#addImagePopUp').find('#addPhotoProjectId').val(id);
+    $('#addImagePopUp').find('#addPhotoFileType').val(fileType);
+    let select = $('#addImagePopUp').find('#itemSelect');
+    select.innerHTML = '';
+    let optionFirst = document.createElement("option");
+    optionFirst.text = "общие фото";
+    optionFirst.value = 0;
+    select.append(optionFirst);
+
+    try {
+        const response = await fetch(`/GetItemsByProjectId?id=${id}`, {
+            method: "GET"
         });
+
+        if (response.ok) {
+            let data = await response.json();
+            console.log(data);
+            let index = 1;
+            data.forEach(i => {
+                let option = document.createElement("option");
+                if (i.title != null) { option.text = i.title; }
+                else { option.text = "item " + index++ }
+                option.value = i.id;
+                select.append(option);
+            });
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке данных:", error);
+    }
+
+    $('.close-btn').click(function () {
+        $('#addImagePopUp').css('visibility', 'hidden');
+        $('.popup_before').css('z-index', '1');
     });
+
+}
+
+//-----------------------------------отправка формы с фото проекта, журнала---------------------------//
+async function setProjectColor(input, id) {
+    const color = input.value;
+    fetch(`/SetProjectColor?id=${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ color })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Ошибка при отправке данных на сервер");
+            }
+            return response.json(); // Если требуется ответ от сервера
+        })
+        .then(data => {
+            console.log("Успешно отправлено:", data);
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+        });
+}
+
+function openProjectCard(id) {
+    console.log("Открытие карточки проекта с ID:", id);
+    $('#projectData').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+
+    $.ajax({
+        url: `/LoadProjectCard`,
+        type: 'GET',
+        data: { id: id },
+        success: function (data) {
+            $('#projectData').html(data);
+        },
+        error: function () {
+            alert("Ошибка при загрузке данных проекта.");
+        }
+    });
+
+    $('.popup_before').click(function () {
+        $('#projectData').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+}
+
+//document.addEventListener("DOMContentLoaded", () => {
+//    const textarea = document.getElementsByTagName("textarea");
+//    textarea.forEach( t => textareaResize(t)); // Подстроить высоту при загрузке страницы
+//});
+
+//не ресайзится изначально суука
+function textareaResize(textarea) {
+    /*textarea.style.height = "auto"; */
+    textarea.style.height = textarea.scrollHeight + "px";
+}
+
+function sendCardText(action, projectId) {
+    const textarea = event.target;
+    const description = textarea.value;
+    console.log("sendCardText: " + description);
+    console.log(JSON.stringify({ description }));
+
+    fetch(`/${action}?id=${projectId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ description })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Ошибка при отправке данных на сервер");
+            }
+            return response.json(); // Если требуется ответ от сервера
+        })
+        .then(data => {
+            console.log("Успешно отправлено:", data);
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+        });
+}
+
+
+
+document.getElementById("photoForm").addEventListener("submit", async function (event) {
+    event.preventDefault(); 
+
+    const projectId = document.getElementById("addPhotoProjectId").value;
+    const fileType = document.getElementById("addPhotoFileType").value;
+    const itemPointer = document.getElementById("itemSelect").value;
+    const photos = document.querySelector('input[type="file"]').files;
+
+    const formData= new FormData();
+    const fileInput = document.getElementById('AddPhotosInput');
+    formData.append(`projectId`, projectId);
+    formData.append(`fileType`, fileType);
+    formData.append(`itemPointer`, itemPointer);
+   
+    const files = fileInput.files;
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        formData.append(`photos[${i}].photo`, file);
+        formData.append(`photos[${i}].projectId`, projectId);
+        formData.append(`photos[${i}].fileType`, fileType);
+        formData.append(`photos[${i}].itemPointer`, itemPointer);
+    }
+    formData.forEach((value, key) => {
+        console.log(key, value);
+    });
+
+    const itemsResponse = await fetch('/CurrentProjects/AddPhotos', {
+        method: 'POST',
+        body: formData
+    });
+    if (itemsResponse.ok) {
+        console.log('загружены photos.');
+        $('#addImagePopUp').css('visibility', 'hidden');
+        $('.popup_before').css('z-index', '1');
+    }
 });
+
+
+    //const textarea = event.target;
+    
+    //console.log("sendCardText: " + description);
+    //console.log(JSON.stringify({ description }));
+
+    //fetch(`/${action}?id=${projectId}`, {
+    //    method: "PUT",
+    //    headers: {
+    //        "Content-Type": "application/json"
+    //    },
+    //    body: JSON.stringify({ description })
+    //})
+    //    .then(response => {
+    //        if (!response.ok) {
+    //            throw new Error("Ошибка при отправке данных на сервер");
+    //        }
+    //        return response.json(); // Если требуется ответ от сервера
+    //    })
+    //    .then(data => {
+    //        console.log("Успешно отправлено:", data);
+    //    })
+    //    .catch(error => {
+    //        console.error("Ошибка:", error);
+    //    });
+
+
+
+
+
+
+
+
 
 function AddEmployee() {
     // Показываем всплывающее окно
@@ -823,29 +1070,11 @@ function showInput(selectId) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const select = document.getElementById('select-Colors');
-    console.log(select);
     getColors(document.getElementById('select-Colors'));
-});
-document.addEventListener('DOMContentLoaded', function () {
-    const select = document.getElementById('select-Materials');
-    console.log(select);
     getMaterials(document.getElementById('select-Materials'));
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const select = document.getElementById('select-Employees');
-    console.log(select);
     getEmployees(document.getElementById('select-Employees'));
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const select = document.getElementById('select-Clients');
-    console.log(select);
     getClients(document.getElementById('select-Clients'));
 });
-
-
 
 async function getMaterials(select) {
     console.log(select);
@@ -858,7 +1087,7 @@ async function getMaterials(select) {
         select.innerHTML = '';
         materials.forEach(material => {
             const option = document.createElement('option');
-            console.log(material);
+           
             option.textContent = material.materialName;
             select.appendChild(option);
         });
@@ -877,7 +1106,7 @@ async function getColors(select) {
         select.innerHTML = '';
         colors.forEach(color => {
             const option = document.createElement('option');
-            console.log(color);
+           
             option.textContent = color.colorName;
             select.appendChild(option);
         });
@@ -895,7 +1124,7 @@ async function getClients(select) {
         select.innerHTML = '';
         clients.forEach(client => {
             const option = document.createElement('option');
-            console.log(client);
+           
             option.textContent = client.title;
             option.value = client.clientId;
             select.appendChild(option);
@@ -911,10 +1140,10 @@ async function getEmployees(select) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const employees = await response.json();
-        select.innerHTML = '';
+       /* select.innerHTML = '';*/
         employees.forEach(employee => {
             const option = document.createElement('option');
-            console.log(employee);
+           
             option.textContent = employee.employeeName;
             option.value = employee.employeeId;
             select.appendChild(option);
@@ -923,10 +1152,6 @@ async function getEmployees(select) {
         console.error('Error loading colors:', error);
     }
 }
-
-
-
-
 async function addOption(selectId) {
     const select = document.getElementById(`select-${selectId}`);
     const input = document.getElementById(`new-${selectId}`);

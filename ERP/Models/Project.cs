@@ -9,6 +9,10 @@ public partial class Project
 
     public string ProjectName { get; set; } = null!;
 
+    public bool? IsArchived { get; set; }
+
+    public string? Color { get; set; }
+
     public DateOnly? PaymentDate { get; set; }
 
     public DateOnly? EventDate { get; set; }
@@ -26,6 +30,8 @@ public partial class Project
     public decimal? PaymentTotal { get; set; }
 
     public decimal? AdvanceRate { get; set; }
+    public string? Description { get; set; }
+    public string? Journal { get; set; }
 
     public virtual Client? Client { get; set; }
 

@@ -28,6 +28,8 @@ namespace ERP.ViewModels
 
         public string ProjectName { get; set; } = null!;
 
+        public string? EmployeeName { get; set; }
+
         public DateOnly? EventDate { get; set; }
 
         public DateOnly? Deadline { get; set; }

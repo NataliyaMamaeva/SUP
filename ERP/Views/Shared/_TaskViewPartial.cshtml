@@ -1,0 +1,20 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model TaskItem
+<form asp-action="AddTask" id="taskForm" asp-controller="CurrentProjects" method="post" class="modal-content">
+    <input type="hidden" asp-for="TaskId" id="taskIdInput" style="visibility: hidden;" />
+    <input type="hidden" asp-for="EmployeeId" id="taskEmployeeIdInput" style="visibility: hidden;" />
+    <input type="hidden" asp-for="Deadline" id="taskDate" style="visibility: hidden;" />
+    <h2 id="modalTitle">Добавить задачу</h2>
+    <label for="projectSelect">Проект</label>
+    <select asp-for="ProjectId" id="taskProjectsSelect">
+        <option value="0" data-color="#ff5733">Задача без проекта</option>
+    </select>
+    <label asp-for="Description" for="taskText">Текст задачи</label>
+    <textarea asp-for="Description" id="taskText" rows="4"></textarea>
+    <button type="submit" id="saveTask"> Сохранить </button>
+    <button id="deleteTask" style="display: none;"> Удалить </button>
+</form>

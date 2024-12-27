@@ -6,31 +6,16 @@
 }
 @model List<ERP.ViewModels.ClientProjectsViewModel>
 
+   @*  добавить фильтры и поиск  *@
+
 <div class="clients">
-    @foreach (var client in Model)
+    @foreach (var client in Model.OrderBy(c => c.ClientTitle))
     {
         <div class="client-container">
             <div class="header client-header" onclick="toggleProjects(this)">
                 <h5>@client.ClientTitle (@client.City)</h5>
             </div>
             <div class="client-details hidden">
-                <h5>Проекты:</h5>
-                <div class="master_list client-projects">
-                    @foreach (var project in client.Projects)
-                    {
-                        <div class="project">
-                            <img src="@project.ImagePath" alt="Project Image">
-                            <div class="project_text">
-                                <p>Название: @project.ProjectName</p>
-                                <p>Дата события: @project.EventDate?.ToShortDateString()</p>
-                                <p>Срок сдачи: @project.Deadline?.ToShortDateString()</p>
-                                <p>Сумма оплаты: @project.PaymentTotal?.ToString("C")</p>
-                                <p>Аванс: @project.AdvanceRate?.ToString("P")</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-
                 <h5>Реквизиты:</h5>
                 <div class="requisites">
                     @foreach (var requisite in client.Requisites)
@@ -64,6 +49,24 @@
                         </div>
                     }
                 </div>
+                <h5>Проекты:</h5>
+                <div class="master_list client-projects">
+                    @foreach (var project in client.Projects)
+                    {
+                        <div class="project">
+                            <img src="@project.ImagePath" alt="Project Image">
+                            <div class="project_text">
+                                <b>@project.ProjectName</b>
+                                <p>Дата события: <b>@project.EventDate?.ToShortDateString()</b></p>
+                                <p>Срок сдачи: <b>@project.Deadline?.ToShortDateString()</b></p>
+                                <p>Сумма оплаты:<b>@project.PaymentTotal?.ToString()</b> </p>
+                                <p>Мастер:<b>@project.EmployeeName</b></p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+              
             </div>
         </div>
     }

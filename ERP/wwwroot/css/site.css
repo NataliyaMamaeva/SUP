@@ -7,6 +7,12 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+    * [type="hidden"] {
+        position: absolute;
+        left: -9999px;
+    }
+
 body {
     font-family: Arial, sans-serif;
     background-color: #1e1e1e; 
@@ -43,8 +49,30 @@ input, select, button, a {
     transition: all 0.3s ease;
 }
 
+pre {
+    text-align: left;
+    height: min-content;
+}
+
+textarea {
+    text-align: left;
+    width: 100%;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.0);
+    color: white;
+    padding: 14px;
+    min-height: 50px; /* Минимальная высота */
+}
+
 select {
     min-width: 150px;
+}
+
+h3, h2 {
+    white-space: nowrap;
+    color: #00ffcc;
+    margin:30px;
+    width: 100%;
 }
 
 a {
@@ -83,7 +111,6 @@ button {
         color: #000;
     }
 
-
 label {
     display: block;
     font-size: 14px;
@@ -104,6 +131,11 @@ input {
     input:focus {
         outline: 2px solid #00ffcc;
     }
+
+.button:hover {
+    background: #74f8dc;
+    color: #000;
+}
 
 /*----------------------------------стили страницы входа-------------------------------------*/
 
@@ -182,6 +214,7 @@ input {
     padding: 10px;
     border-radius: 10px;
     margin: 20px;
+    width: 100%;
 }
 
     .header button {
@@ -305,7 +338,7 @@ input {
     margin: auto;
     justify-content: center;
     display: inline-block;
-    padding-top: 5px;
+    padding-top: 0;
     overflow: visible;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
@@ -321,6 +354,10 @@ input {
 
 .popup::-webkit-scrollbar {
     width: 0;
+}
+
+.journal{
+    height:fit-content;
 }
 
 .journal_images {
@@ -364,12 +401,19 @@ input {
     gap: 10px;
 }
 
+    .project_card_div h2 {
+        margin-bottom: 15px;
+        font-size: 1.5em;
+        color: #00ffcc;
+    }
+
     .project_card_div img {
         width: 100px;
         height: 100px;
         border-radius: 10px;
         object-fit: cover;
     }
+
 input[type="date"]{
     max-width: 100px;
 }
@@ -393,9 +437,10 @@ input[type="date"]{
     border-radius: 10px;
 }
 
-    .text_block p {
-        margin-bottom: 10px;
-    }
+
+.text_block p {
+    margin-bottom: 10px;
+}
 /* Адаптивность */
 
 .image-overlay button {
@@ -417,6 +462,64 @@ input[type="date"]{
     .image-overlay img:hover {
         transform: scale(1.05);
     }
+
+
+.project-details {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    vertical-align: top;
+    width:100%;
+
+}
+.table {
+    width: 100%; /* Устанавливаем таблице ширину 100% */
+}
+
+.item-description {
+    max-width: 50%; /* Ограничиваем ширину столбца с описанием */
+    overflow: scroll; /* Прячем текст, который выходит за пределы */
+}
+
+.detail-item {
+    padding: 20px;
+   /* border: 1px solid #ddd;*/
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
+}
+
+    .detail-item strong {
+        font-weight: bold;
+        color: white;
+      
+    }
+
+    .detail-item span {
+        color: lightgray;
+    
+    }
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+  /*  .action-buttons button {
+        padding: 10px 15px;
+        font-size: 1em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }*/
+
 
 /* .taskPlanner {
     font-family: Arial, sans-serif;
@@ -490,9 +593,37 @@ input[type="date"]{
     cursor: pointer;
 }
 
-    .calendar-cell .add-task-btn:hover {
-        background: #333;
-    }
+.empty-calendar-cell {
+    position: relative;
+    background: rgba(255, 255, 255, 0.0);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    height: 220px;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: scroll;
+}
+
+.weekend {
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    height: 220px;
+    display: flex;
+    margin: 1%;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: scroll;
+}
+
+.calendar-cell .add-task-btn:hover {
+    background: #333;
+}
 
 .add-task-btn {
     background: black;
@@ -703,7 +834,7 @@ input[type="date"]{
 }
 
 .client-header {
-    background-color: #212931;
+    background-color: black;
     color: white;
     padding: 10px;
     cursor: pointer;

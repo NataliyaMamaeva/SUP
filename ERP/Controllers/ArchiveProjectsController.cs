@@ -33,7 +33,8 @@ namespace ERP.Controllers
                         Deadline = project.Deadline,
                         PaymentTotal = project.PaymentTotal,
                         AdvanceRate = project.AdvanceRate,
-                        ImagePath = project.Items.FirstOrDefault().SketchPath
+                        ImagePath = project.Items.FirstOrDefault().SketchPath,
+                        EmployeeName = project.Employee.EmployeeName
                     }).ToList(),
                     Requisites = client.Requisites.Select(requisite => new ClientRequisiteViewModel
                     {

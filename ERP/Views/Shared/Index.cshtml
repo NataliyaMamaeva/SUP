@@ -10,8 +10,12 @@
         <!-- <button>журнал</button> -->
         <button>архив проектов | журнал</button>
         <!-- <button id="addProjectButton">добавить проект</button> -->
-    </div> *@
-<h3 class="master_name">ОЧЕРЕДЬ ПРОЕКТОВ</h3>
+    </div> 
+    @model ERP.ViewModels.CurrentProjectsViewModel
+    *@
+
+
+@* <h3 class="master_name">ОЧЕРЕДЬ ПРОЕКТОВ</h3>
 <div class="master_list red">
     <div id="addProjectButton" class="project">
     <img src="images\плюсик.jpg" alt="">
@@ -56,7 +60,20 @@
         </div>
     </div>
 </div>
-<div class="header">
+ *@
+<h3 class="master_name">ОЧЕРЕДЬ ПРОЕКТОВ</h3>
+<div id="newProjectsContainer" class="master_list red">
+    <div id="addProjectButton" class="project">
+        <img src="images\плюсик.jpg" alt="">
+        <div class="project_text">
+            <p>добавить проект</p>
+        </div>
+    </div>
+</div>
+
+<div id="employeesContainer"></div>
+
+@* <div class="header">
     <h3 class="master_name">АНЯ</h3>
     <button onclick="taskPlanner()">планирование задач</button>
     <button>ЗП архив | прогноз</button>
@@ -141,7 +158,7 @@
             <p>материал</p>
         </div>
     </div>
-</div>
+</div> *@
 <div class="header">
     <button onclick="AddEmployee()">ДОБАВИТЬ СОТРУДНИКА</button>
 </div>
@@ -149,55 +166,34 @@
     <button onclick="AddClient()">ДОБАВИТЬ ЗАКАЗЧИКА</button>
 </div>
 
-
 <div class="popup_before"></div>
-<div id="projectData" class="popup">
-    @Html.Partial("_ProjectCardPartial")
-
-</div>
+<div id="projectData" class="popup"> </div> 
 <div id="addProject" class="popup">
     @Html.Partial("_CreateProjectPartial")
+</div>
+
+<div class="modal" id="taskModal">
+    @Html.Partial("_TaskViewPartial")
 </div>
 <div id="calendarContainer" class="popup calendar-container">
     <!-- <div class="calendar-container" id="calendarContainer"> -->
     <div class="calendar" id="calendar"></div>
     <!-- </div> -->
     <!-- Modal for adding/editing tasks -->
-    <div class="modal" id="taskModal">
-        <div class="modal-content">
-            <h2 id="modalTitle">Добавить задачу</h2>
-            <label for="projectSelect">Проект</label>
-            <select id="projectSelect">
-                <option value="project1" data-color="#ff5733">Проект 1</option>
-                <option value="project2" data-color="#33ff57">Проект 2</option>
-                <option value="project3" data-color="#3357ff">Проект 3</option>
-            </select>
-            <label for="taskText">Текст задачи</label>
-            <textarea id="taskText" rows="4"></textarea>
-            <button id="saveTask">Сохранить</button>
-            <button id="deleteTask" style="display: none;">Удалить</button>
-        </div>
-    </div>
+  
 </div>
+
 <div id="addImagePopUp" class="popup_small">
-    <svg class="close-btn" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg class="close-btn" xmlns="http://www.w3.org/2000/svg" width="24"
+    height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
-    <select>
-        <option>Общие фото</option>
-        <option>Медаль 1 этап</option>
-        <option>Медаль 2 этап</option>
-        <option>Медаль 3 этап</option>
-        <option>Статуэтка</option>
-    </select>
-    <input multiple accept="image/*" type="file">
-    <button id="addItem">добавить фото</button>
+    @Html.Partial("_AddPhotosPartial")
 </div>
 <div id="addEmployeePopUp" class="popup_small">
     @Html.Partial("_CreateEmployeePartial")
 </div>
-
 <div id="addClient" class="popup_small">
     @Html.Partial("_CreateClientPartial")
 </div>

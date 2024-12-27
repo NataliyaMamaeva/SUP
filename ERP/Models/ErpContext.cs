@@ -140,8 +140,8 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
 
             entity.ToTable("Project");
 
-            entity.Property(e => e.AdvanceRate).HasColumnType("decimal(3, 2)");
-            entity.Property(e => e.PaymentTotal).HasColumnType("decimal(6, 2)");
+            entity.Property(e => e.AdvanceRate).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.PaymentTotal).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.ProjectName).HasMaxLength(100);
 
             entity.HasOne(d => d.Client).WithMany(p => p.Projects)

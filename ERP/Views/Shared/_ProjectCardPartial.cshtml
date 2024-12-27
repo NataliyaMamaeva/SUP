@@ -1,123 +1,106 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-
-@model ERP.Models.Project
-
-@* --------------------вообще ещё не смотрела------------------------- *@
+﻿
+@model ERP.ViewModels.ProjectCardViewModel
 
 <div class="project_card_div">
-    <h3>Название проекта</h3>
-    <p>тираж</p>
-    <p>дата сдачи</p>
-    <button>Заказчик</button>
-    <button>Архивировать</button>
-    <button>Редактировать</button>
+     <h2>@Model.ProjectName</h2>
+    <div class="action-buttons">
+        <button>Забрать</button>
+        <input type="color" onblur="setProjectColor(this, @Model.ProjectId)" id="colorPicker" name="color" value="@Model.ProjectColor">
+    </div>
+    <div class="project-details">
+        <div class="detail-item">
+            <span>Дата оплаты:</span><br/> <strong>@Model.PaymentDate</strong>
+        </div>
+        <div class="detail-item">
+            <span>Дата мероприятия:</span> <br /> <strong>@Model.EventDate</strong>
+        </div>
+        <div class="detail-item">
+            <span>Крайний срок:</span> <br /> <strong>@Model.Deadline</strong>
+        </div>
+        <div class="detail-item">
+            <span>Клиент:</span> <br /> <strong>@Model.ClientName</strong>
+        </div>
+        <div class="detail-item">
+            <span>Сотрудник:</span> <br /> <strong>@Model.EmployeeName</strong>
+        </div>
+        <div class="detail-item">
+            <span>Итоговая сумма:</span> <br /> <strong>@Model.PaymentTotal</strong>
+        </div>
+        <div class="detail-item">
+            <span>Аванс:</span><br />  <strong>@Model.AdvanceRate</strong>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button>Архивировать</button>
+        <button>Редактировать</button>
+    </div>
 </div>
 <div class="project_card_div gallery">
-    <table class=" table table-dark table-striped table-bordered text-center align-middle items">
-        <tr>
-            <td>тип</td>
-            <td>эскиз</td>
-            <td>тираж</td>
-            <td>описание</td>
-        </tr>
-        <tr>
-            <td>медаль</td>
-            <td><img src="images/photo_7_2024-03-22_10-08-58.jpg" alt=""></td>
-            <td>133</td>
-            <td>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                Consequatur rem quisquam fugiat numquam nobis dicta, autem facere aut eaque corporis sapiente,
-                doloremque sint odit? Distinctio aliquam velit odit modi voluptatum.
-            </td>
-        </tr>
-        <tr>
-            <td>медаль</td>
-            <td><img src="images/photo_7_2024-03-22_10-08-58.jpg" alt=""></td>
-            <td>133</td>
-            <td>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                Consequatur rem quisquam fugiat numquam nobis dicta, autem facere aut eaque corporis sapiente,
-                doloremque sint odit? Distinctio aliquam velit odit modi voluptatum.
-            </td>
-        </tr>
-        <tr>
-            <td>медаль</td>
-            <td><img src="images/photo_7_2024-03-22_10-08-58.jpg" alt=""></td>
-            <td>133</td>
-            <td>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                Consequatur rem quisquam fugiat numquam nobis dicta, autem facere aut eaque corporis sapiente,
-                doloremque sint odit? Distinctio aliquam velit odit modi voluptatum.
-            </td>
-        </tr>
+    <table class="table table-dark table-striped table-bordered text-center align-middle items">
+        <thead>
+            <tr>
+                <th>Тип</th>
+                <th>Эскиз</th>
+                <th>Тираж</th>
+                <th class="item-description">Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ItemType</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.SketchPath))
+                        {
+                            <img src="@item.SketchPath" alt="Эскиз">
+                        }
+                    </td>
+                    <td>@item.Amount</td>
+                    <td class="item-description"><pre>@item.ItemDescription</pre></td>
+                </tr>
+            }
+        </tbody>
     </table>
-    <div>
-        <button>материалы</button>
-        <button>доки</button>
-    </div>
 </div>
+
 <div class="project_card_div">
-    <p>макеты: </p>
-    <button>PDF</button>
-    <button>CDR</button>
-    <button>фрезеровка</button>
-    <button>Лазер</button>
+    <h3>Макеты</h3>
+    @foreach (var layout in Model.Layouts)
+    {
+        <a class="button" href="@layout.FilePath" download> @layout.FileTitle </a>
+    }
+
+    <h3>Документы</h3>
+    @foreach (var doc in Model.Documents)
+    {
+        <a class="button" href="@doc.FilePath" download> @doc.FileTitle </a>
+    }
 </div>
-<h3 class="master_name">Описание</h3>
+
+<h3>Описание</h3>
 <div class="text_block">
-    <p class="description">
-        описание проекта  Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus necessitatibus rerum reprehenderit voluptatum
-        expedita dolorum asperiores eligendi nisi
-        veritatis id dolore tenetur, mollitia magnam fugiat dolores delectus autem, accusamus dolor?
-    </p>
-    <p class="payment">7 000 p</p>
+    <textarea onblur="sendCardText('PutProjectDescription', @Model.ProjectId)" oninput="textareaResize(this)">@Model.Description</textarea>
 </div>
-<h3 class="master_name">Журнал</h3>
+
+<h3>Журнал</h3>
 <div class="text_block journal">
-    <p class="description short">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus necessitatibus rerum reprehenderit voluptatum
-        expedita dolorum asperiores eligendi nisi
-        veritatis id dolore tenetur, mollitia magnam fugiat dolores delectus autem, accusamus dolor?
-        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quibusdam ipsam, perspiciatis dolores tenetur incidunt, explicabo voluptatum veniam dolorum illum voluptatem vero debitis architecto, veritatis libero sequi pariatur nam culpa vel.
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque, quia commodi aperiam incidunt qui eos dolor asperiores mollitia saepe! Perferendis natus a quas. Necessitatibus optio expedita reiciendis animi et cupiditate.
-    </p>
+    <textarea onblur="sendCardText('PutProjectJournal', @Model.ProjectId)" oninput="textareaResize(this)">@Model.Journal</textarea>
     <div class="journal_images gallery">
-        <img class="plus" src="images\плюсик.jpg" alt="">
-        <img src="photos/photo_1_2024-03-22_10-36-36.jpg" onclick="showFullImage(this)" alt="">
-        <img src="photos/photo_2_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_3_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_4_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_5_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_8_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_7_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_3_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_4_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_5_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_8_2024-03-22_10-36-36.jpg" alt="">
-        <img src="photos/photo_7_2024-03-22_10-36-36.jpg" alt="">
+        <img onclick="plusClick('журналФото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
+        @foreach (var photo in Model.JournalPhotos)
+        {
+            <img src="@photo.FilePath" alt="@photo.FileTitle">
+        }
     </div>
-
 </div>
 
-
-<h3 class="master_name">Галерея</h3>
+<h3>Галерея</h3>
 <div class="gallery project_card_div">
-    <img class="plus" src="images\плюсик.jpg" alt="">
-    <img src="photos/photo_1_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_2_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_3_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_4_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_5_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_2_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_3_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_4_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_5_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_2_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_3_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_4_2024-03-22_10-36-36.jpg" alt="">
-    <img src="photos/photo_5_2024-03-22_10-36-36.jpg" alt="">
+    <img onclick="plusClick('фото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
+    @foreach (var photo in Model.Gallery)
+    {
+        <img src="@photo.FilePath" alt="@photo.FileTitle">
+    }
 </div>
