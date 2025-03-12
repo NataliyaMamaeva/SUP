@@ -20,9 +20,11 @@ namespace ERP.ViewModels
 
         public string? Passport { get; set; } = null!;
 
-        public string Position { get; set; } = null!;
+        public string? Position { get; set; } = null!;
 
         public string? Email { get; set; }
+
+        public int? BossId { get; set; }
 
         public string Password { get; set; } = null!;
 

@@ -6,7 +6,30 @@
 }
 @model List<ERP.ViewModels.ClientProjectsViewModel>
 
-   @*  добавить фильтры и поиск  *@
+@* --------- переписать  модель ??? что бы потдягивались аккаунты .и отмечался выбранный ----------------
+    ------------на выбор другого аккаунта отправлять запрос. что бы переназначился каррент -------------------
+*@
+
+@if(User.IsInRole("Boss"))
+{
+
+    //-------------------обработка события OnChange или просто клик ?   ---------  переназначать на сервере активный аккаунт 
+    // --------------------------------передавать аккаунты с вьюМоделью?????_________________-
+<div class="header">   
+        <div class="account-list">
+            @foreach(var account in @Model[0].Accounts)
+            {
+                <label class="radio-container">
+
+                    <input type="radio" @(account.IsCurrent ? "checked" : "") name="account" value="@account.AccountId">
+                 
+                    <span class="checkmark"> @account.Email</span>   
+                </label>    
+            }
+            <button type="button" onclick="authorizeYandex()">Добавить аккаунт</button>
+        </div>
+</div>
+}
 
 <div class="clients">
     @foreach (var client in Model.OrderBy(c => c.ClientTitle))
@@ -16,6 +39,7 @@
                 <h5>@client.ClientTitle (@client.City)</h5>
             </div>
             <div class="client-details hidden">
+                <button onclick="editClientDivOpen(@client.ClientId)"> редактировать заказчика </button>
                 <h5>Реквизиты:</h5>
                 <div class="requisites">
                     @foreach (var requisite in client.Requisites)
@@ -53,16 +77,31 @@
                 <div class="master_list client-projects">
                     @foreach (var project in client.Projects)
                     {
-                        <div class="project">
-                            <img src="@project.ImagePath" alt="Project Image">
-                            <div class="project_text">
-                                <b>@project.ProjectName</b>
-                                <p>Дата события: <b>@project.EventDate?.ToShortDateString()</b></p>
-                                <p>Срок сдачи: <b>@project.Deadline?.ToShortDateString()</b></p>
-                                <p>Сумма оплаты:<b>@project.PaymentTotal?.ToString()</b> </p>
-                                <p>Мастер:<b>@project.EmployeeName</b></p>
+                        if(project.IsArchived != true)
+                       {
+                           <div onclick='openProjectCard(@project.ProjectId)' class="project">
+                                <img src="@project.ImagePath" alt="Project Image">
+                                <div class="project_text">
+                                    <b>@project.ProjectName</b>
+                                    <p>Дэдлайн: <b>@project.Deadline?.ToShortDateString()</b></p>
+                                    <p>Сумма:<b>@project.PaymentTotal?.ToString()</b> </p>
+                                    <p>Мастер:<b>@project.EmployeeName</b></p>
+                                </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div  class="project archiveCard">
+                                <img src="@project.ImagePath" alt="Project Image">
+                                <div class="project_text">
+                                    <b>@project.ProjectName</b>
+                                    <p>Дэдлайн: <b>@project.Deadline?.ToShortDateString()</b></p>
+                                    <p>Сумма:<b>@project.PaymentTotal?.ToString()</b> </p>
+                                    <p>Мастер:<b>@project.EmployeeName</b></p>
+                                </div>
+                                <button onclick='DownloadAndExtractProjectAsync(@project.ProjectId)'>загрузить</button>
+                            </div>
+                        }
                     }
                 </div>
 
@@ -71,6 +110,26 @@
         </div>
     }
 </div>
+
+
+<div class="popup_before"></div>
+<div id="projectData" class="popup"> </div>
+<div id="addProject" class="popup"></div>
+<div id="gallery" class="popup"></div>
+
+<div id="addImagePopUp" class="popup_small">
+    <svg class="close-btn" xmlns="http://www.w3.org/2000/svg" width="24"
+         height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+   
+</div>
+
+<div id="editClient" class="popup_small">
+  @*  @Html.Partial("_CreateClientPartial") *@
+</div>
+
 
 <script>
     function toggleProjects(header) {

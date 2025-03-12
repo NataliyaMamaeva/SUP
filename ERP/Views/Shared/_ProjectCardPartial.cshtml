@@ -1,10 +1,35 @@
 ﻿
+
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ErpUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var employeeId = currentUser?.EmployeeId;
+    var employeeName = currentUser?.UserName;
+}
+
 @model ERP.ViewModels.ProjectCardViewModel
+
+
+
+@* -------------------------------------------------------!!!!!!!!!!!!!!!!!---------------------------------------------------------
+неправильно выводятся даты!!! иногда. сначала месяц потом число. иногда норм *@
+
+
 
 <div class="project_card_div">
      <h2>@Model.ProjectName</h2>
     <div class="action-buttons">
-        <button>Забрать</button>
+       
+        @if (Model.EmployeeName == null)
+        {
+            <button onclick="takeProject(@employeeId , @Model.ProjectId)">Забрать</button>
+        }
+        else
+        {
+            <button disabled>@Model.EmployeeName</button>
+        }
         <input type="color" onblur="setProjectColor(this, @Model.ProjectId)" id="colorPicker" name="color" value="@Model.ProjectColor">
     </div>
     <div class="project-details">
@@ -15,25 +40,31 @@
             <span>Дата мероприятия:</span> <br /> <strong>@Model.EventDate</strong>
         </div>
         <div class="detail-item">
-            <span>Крайний срок:</span> <br /> <strong>@Model.Deadline</strong>
+            <span>Дэдлайн:</span> <br /> <strong>@Model.Deadline</strong>
         </div>
         <div class="detail-item">
             <span>Клиент:</span> <br /> <strong>@Model.ClientName</strong>
         </div>
-        <div class="detail-item">
-            <span>Сотрудник:</span> <br /> <strong>@Model.EmployeeName</strong>
-        </div>
+
+    @if (User.IsInRole("Boss"))
+    {
         <div class="detail-item">
             <span>Итоговая сумма:</span> <br /> <strong>@Model.PaymentTotal</strong>
         </div>
         <div class="detail-item">
             <span>Аванс:</span><br />  <strong>@Model.AdvanceRate</strong>
         </div>
+    }
+        <div class="detail-item">
+            <span>Оплата мастера:</span><br />  <strong>@Model.EmployeePayment</strong>
+        </div>
     </div>
-
     <div class="action-buttons">
-        <button>Архивировать</button>
-        <button>Редактировать</button>
+        <button onclick="archiveProject(@Model.ProjectId)">Архивировать</button>
+          @if (User.IsInRole("Boss"))
+            {     
+                <button onclick="editProject(@Model.ProjectId)">Редактировать</button>
+            }
     </div>
 </div>
 <div class="project_card_div gallery">
@@ -54,7 +85,7 @@
                     <td>
                         @if (!string.IsNullOrEmpty(item.SketchPath))
                         {
-                            <img src="@item.SketchPath" alt="Эскиз">
+                            <img onclick="openGallery(this)" src="@item.SketchPath" alt="Эскиз">
                         }
                     </td>
                     <td>@item.Amount</td>
@@ -91,7 +122,7 @@
         <img onclick="plusClick('журналФото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
         @foreach (var photo in Model.JournalPhotos)
         {
-            <img src="@photo.FilePath" alt="@photo.FileTitle">
+            <img onclick="openGallery(this)" src="@photo.FilePath" alt="@photo.FileTitle">
         }
     </div>
 </div>
@@ -101,6 +132,119 @@
     <img onclick="plusClick('фото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
     @foreach (var photo in Model.Gallery)
     {
-        <img src="@photo.FilePath" alt="@photo.FileTitle">
+        <img onclick="openGallery(this)" src="@photo.FilePath" alt="@photo.FileTitle">
     }
 </div>
+
+<script>
+
+
+
+    function openGallery(image) {
+       
+        var gallery = image.closest('.gallery');
+        var images = gallery.querySelectorAll('img');
+
+        //// Массив с путями к полноразмерным изображениям (например, заменим 'small' на 'large' в путях)
+        //var imagePaths = Array.from(images).map(function (img) {
+        //    return img.src.replace('small', 'large'); // Предполагаем, что полноразмерные изображения имеют другой суффикс
+        //});
+
+        var imagePaths = Array.from(images).map(function (img) {
+            return img.src;
+        });
+        // $('#gallery').css('visibility', 'visible');
+        // $('.popup_before').css('visibility', 'visible');
+
+        // $('.popup_before').click(function () {
+        //     $('#gallery').css('visibility', 'hidden');
+        //     $('.popup_before').css('visibility', 'hidden');
+        // });
+
+        // Создаём модальное окно
+        var modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.style.position = 'fixed';
+        modal.style.top = 0;
+        modal.style.left = 0;
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = 1000;
+
+        // Добавляем кнопки для навигации по изображениям
+        var prevButton = document.createElement('button');
+        prevButton.textContent = '';
+        prevButton.style.position = 'absolute';
+        prevButton.style.left = '20px';
+        prevButton.style.fontSize = '2em';
+
+        prevButton.style.color = 'white';
+        prevButton.style.backgroundColor = 'transparent';
+        prevButton.style.border = 'none';
+        prevButton.style.cursor = 'pointer';
+
+        var nextButton = document.createElement('button');
+        nextButton.textContent = '';
+        nextButton.style.position = 'absolute';
+        nextButton.style.right = '20px';
+        nextButton.style.fontSize = '2em';
+        nextButton.style.color = 'white';
+        nextButton.style.backgroundColor = 'transparent';
+        nextButton.style.border = 'none';
+        nextButton.style.cursor = 'pointer';
+
+        var modalImage = document.createElement('img');
+        modalImage.src = image.src.replace('small', 'large');
+        modalImage.style.maxWidth = '90%';
+        modalImage.style.maxHeight = '90%';
+        modalImage.style.objectFit = 'contain';
+
+        modal.appendChild(modalImage);
+        modal.appendChild(prevButton);
+        modal.appendChild(nextButton);
+
+        //$('#gallery').append(modal);
+        document.body.appendChild(modal);
+
+      
+        var currentIndex = imagePaths.indexOf(modalImage.src);
+
+        function showImage(index) {
+            if (index < 0) {
+                index = imagePaths.length - 1;
+            } else if (index >= imagePaths.length) {
+                index = 0; 
+            }
+            modalImage.src = imagePaths[index];
+            currentIndex = index;
+        }
+
+        prevButton.addEventListener('click', function () {
+            showImage(currentIndex - 1);
+        });
+
+        nextButton.addEventListener('click', function () {
+            showImage(currentIndex + 1);
+        });
+
+        // Закрытие модального окна при клике на его фон
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
+
+        // Закрытие модального окна при нажатии на клавишу Escape
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                document.body.removeChild(modal);
+            }
+        });
+    }
+
+
+</script> 

@@ -1,0 +1,244 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model ERP.ViewModels.ProjectCardViewModel
+
+<form  id="editProjectForm"  method="post" enctype="multipart/form-data">
+    <div class="project_card_div">
+        <input type="hidden" asp-for="ProjectId" id="ProjectIdInput" style="visibility: hidden;" />
+        <input type="hidden" id="SelectedClientId" value="@Model.SelectedClientId" />
+        <input type="hidden" id="SelectedEmployeeId" value="@Model.SelectedEmployeeId" />     
+        <div style="display:inline;">
+            <label for="projectName" class="form-label">Название проекта</label>
+            <input type="text" asp-for="ProjectName" id="projectName" class="form-control" style="width:min-content;" placeholder="Введите название проекта">
+        </div>
+        <div style="display:inline;">
+            <label for="deadLine" class="form-label">Дэдлайн</label>
+            <input type="date" asp-for="Deadline" id="deadLine" class="form-control">
+        </div>
+        <div style="display:inline;">
+            <label for="paymentDate" class="form-label">Дата предоплаты</label>
+            <input type="date" asp-for="PaymentDate" id="paymentDate" class="form-control">
+        </div>
+        <div style="display:inline;">
+            <label for="select-Clients" class="form-label">Клиент</label>
+            <select id="select-Clients"  asp-for="ClientName" class="form-select select-Clients">
+            </select>
+        </div>
+
+        <div style="display:inline;">
+            <label for="EmployeePaymentInput" class="form-label">Оплата мастера</label>
+            <input type="number" asp-for="EmployeePayment" class="form-control" id="EmployeePaymentInput" />
+        </div>
+    </div>
+    <table class="table table-dark table-striped table-bordered text-center align-middle items">
+        <thead>
+            <tr>
+                <th>Тип</th>
+              @*   <th>Имя</th> *@
+                <th>Файл</th>
+                <th>Эскиз</th>
+                <th>Тираж</th>
+                <th>Срок</th>
+                <th>Цена</th>
+                <th>Материалы</th>
+                <th>Цвета</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+    @if(Model != null)
+    {
+        <tbody id="addItemTable">
+    @for (int i = 0; i < Model.Items.Count; i++)
+    {
+        var item = Model.Items[i];
+        <input type="hidden" id="selectedMaterials-@i" name="items[@i].SelectedMaterials" value="@item.SelectedMaterials" />
+        <input type="hidden" id="selectedColors-@i" name="items[@i].SelectedColors" value="@item.SelectedColors" />
+        <input type="hidden" id="itemId-@i" name="items[@i].ItemId" value="@item.ItemId" />
+        <tr>
+            <td>
+                <input type="hidden" name="items[@i].itemId" value="@item.ItemId" />
+                <select name="items[@i].itemType" id="itemTypeSelect" class="select-small">
+                    <option class="select-small" value="Медаль">Медаль</option>
+                    <option class="select-small" value="Статуэтка">Статуэтка</option>
+                    <option class="select-small" value="Брелок">Брелок</option>
+                </select>
+            </td>
+          @*   <td><input type="text" name="items[@i].itemName" class="form-control" value="@item.ItemName"></td> *@
+            <td>
+                <input type="file" name="items[@i].sketch" class="form-control">
+                @if (!string.IsNullOrEmpty(item.SketchPath))
+                {
+                    <input type="text" name="items[@i].sketchPath" value="@item.SketchPath" />
+
+                    <a href="@item.SketchPath" target="_blank">Скачать</a>
+                }
+            </td>
+            <td>
+                @if (!string.IsNullOrEmpty(item.SketchPath))
+                {
+                    <img src="@item.SketchPath" alt="Эскиз" id="imgFirst" style="max-width: 100px;">
+                }
+            </td>
+            <td><input type="number" name="items[@i].itemCount" class="form-control" value="@item.Amount"></td>
+            <td><input type="date" name="items[@i].itemDeadline" class="form-control" value="@item.Deadline?.ToString("yyyy-MM-dd")"></td>
+            <td><input type="number" name="items[@i].itemPrice" class="form-control" value="@item.Price"></td>
+            <td>
+                <select id="select-Materials-@i" class="select-Materials" name="items[@i].materials" multiple>
+                </select>
+               @*  <button type="button" onclick="showInput('materials')">+</button>
+                <div id="input-materials" style="display: none;">
+                    <input type="text" id="new-Materials" placeholder="Введите название" />
+                    <button type="button" onclick="addOption('Materials')">Добавить</button>
+                </div> *@
+            </td>
+            <td>
+                <select id="select-Colors-@i" class="select-Colors" name="items[@i].colors" multiple>
+                </select>
+              @*   <button type="button" onclick="showInput('Colors')">+</button>
+                <div id="input-Colors" style="display: none;">
+                    <input type="text" id="new-Colors" placeholder="Введите название" />
+                    <button type="button" onclick="addOption('Colors')">Добавить</button>
+                </div> *@
+            </td>
+            <td><input type="text" name="items[@i].itemDescription" class="form-control" value="@item.ItemDescription"></td>
+            <td>
+                <button onclick="deleteItem(@item.ItemId)" type="button" class="btn btn-danger remove-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                        <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    }
+</tbody>
+
+    }
+    else{
+   
+        <tbody id="addItemTable">
+            <tr>
+                <td>
+                    <select  name="items[0].itemType" id="itemTypeSelect" class="form-select">
+                        <option selected value="Медаль">Медаль</option>
+                        <option value="Статуэтка">Статуэтка</option>
+                        <option value="Брелок">Брелок</option>
+                    </select>
+                </td>
+               @*  <td><input type="text" name="items[0].itemName" class="form-control"></td> *@
+                <td><input type="file" name="items[0].sketch" id="fileInputFirst" class="form-control"></td>
+                <td ><img id="imgFirst"/></td>
+                <td><input type="number" name="items[0].itemCount" class="form-control"></td>
+                <td><input type="date" name="items[0].itemDeadline" class="form-control"></td>
+                <td><input type="number" name="items[0].itemPrice" class="form-control"></td>
+                <td>
+                    <select id="select-Materials" name="items[0].materials" multiple>               
+                    </select>
+                     <button type="button" onclick="showInput('materials')">+</button>
+                    <div id="input-materials" style="display: none;">
+                        <input type="text" id="new-Materials" placeholder="Введите название" />
+                        <button type="button" onclick="addOption('Materials')">Добавить</button>
+                    </div>
+                </td>
+                <td>
+                    <select id="select-Colors" name="items[0].colors" multiple>           
+                    </select>
+                      <button type="button" onclick="showInput('Colors')">+</button>
+                    <div id="input-Colors" style="display: none;">
+                        <input type="text" id="new-Colors" placeholder="Введите название" />
+                        <button type="button" onclick="addOption('Colors')">Добавить</button>
+                    </div>
+                </td>
+                <td><input type="text" name="items[0].itemDescription" class="form-control"></td>
+                <td>
+                    <!-- Кнопка удаления (картинка крестика) -->
+                        <button type="button" onclick="removeItemRow(this)" id="remove-item" class="btn btn-danger remove-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                            <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    }
+    </table>
+    <button type="button" onclick="addItemRow()" id="addItem" class="btn btn-primary">Добавить строчку</button>
+
+    <div class="project_card_div">
+        <h3>Мастер</h3>
+        <select id="select-Employees" asp-for="EmployeeName" class="form-select select-Employees">
+            <option value="0">Мастер не назначен</option>
+        </select>
+    </div>
+
+
+    @if (Model != null)
+    {
+        <h3>Макеты ( общий | фрез | фанера | пластик | коробки )</h3>
+        <table class="table table-dark table-striped table-bordered text-center align-middle files">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Файл</th>
+                    <th>Загружено</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var layout in Model.Layouts)
+                {
+                    <tr>
+                        <td>@layout.FileTitle</td>
+                        <td><a href="@layout.FilePath" target="_blank">Скачать</a></td>
+                        <td>@layout.UploadedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile(@layout.FileId)">Удалить</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <input type="file" class="form-control" id="ProjectFiles" name="NewProjectFiles" multiple>
+
+        <h3>Документы</h3>
+        <table class="table table-dark table-striped table-bordered text-center align-middle files">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Файл</th>
+                    <th>Загружено</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var document in Model.Documents)
+                {
+                    <tr>
+                        <td>@document.FileTitle</td>
+                        <td><a href="@document.FileId" target="_blank">Скачать</a></td>
+                        <td>@document.UploadedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile(@document.FileId)">Удалить</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <input type="file" class="form-control" id="ProjectDocuments" name="NewProjectDocuments" multiple>
+    }
+    else
+    {
+        <h3>Макеты</h3>
+        <input type="file" class="form-control" id="ProjectFiles" name="ProjectFiles" multiple>
+        <h3>Документы</h3>
+        <input type="file" class="form-control" id="ProjectDocuments" name="ProjectDocuments" multiple>
+    }
+  
+    <button type="button" style="margin-top: 40px;" onclick="sendProjectData('edit')" class="btn btn-success">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
+    <button type="button" onclick="deleteProject('@Model.ProjectId')" class="btn btn-danger red">УДАЛИТЬ ПРОЕКТ</button>
+</form>
+

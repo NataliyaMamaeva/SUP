@@ -3,6 +3,37 @@ using ERP.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
+using ERP.Services;
+using System.IO.Pipes;
+using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
+using NuGet.Configuration;
+using Microsoft.EntityFrameworkCore;
+using System.Drawing;
+using System.Text.Json;
+
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using SkiaSharp;
+//using ERP.Data.Migrations;
+using Azure.Core;
+using Microsoft.CodeAnalysis.Elfie.Model.Tree;
+using System.Drawing.Imaging;
+
 
 namespace ERP.Controllers
 {
@@ -10,57 +41,137 @@ namespace ERP.Controllers
     public class ArchiveProjectsController : Controller
     {
         private readonly ErpContext _context;
+        private readonly IYandexDiskService _yandexDiskService;
 
-        public ArchiveProjectsController(ErpContext context)
+
+        public ArchiveProjectsController(ErpContext context, IYandexDiskService yandexDiskService)
         {
             _context = context;
+            _yandexDiskService = yandexDiskService;
         }
 
         public IActionResult ArchiveProjects()
         {
-            var clients = _context.Clients
-                .Select(client => new ClientProjectsViewModel
-                {
-                    ClientId = client.ClientId,
-                    ClientTitle = client.Title,
-                    City = client.City,
-                    FirstRequestDate = client.FirstRequstDate,
-                    Projects = client.Projects.Select(project => new ClientProjectViewModel
-                    {
-                        ProjectId = project.ProjectId,
-                        ProjectName = project.ProjectName,
-                        EventDate = project.EventDate,
-                        Deadline = project.Deadline,
-                        PaymentTotal = project.PaymentTotal,
-                        AdvanceRate = project.AdvanceRate,
-                        ImagePath = project.Items.FirstOrDefault().SketchPath,
-                        EmployeeName = project.Employee.EmployeeName
-                    }).ToList(),
-                    Requisites = client.Requisites.Select(requisite => new ClientRequisiteViewModel
-                    {
-                        RequisiteId = requisite.RequisiteId,
-                        FileTitle = requisite.FileTitle,
-                        FilePath = requisite.FilePath,
-                        Comment = requisite.Comment,
-                        UploadedAt = requisite.UploadedAt
-                    }).ToList(),
-                    DeliveryAddresses = client.DeliveryAddresses.Select(address => new ClientDeliveryAddressViewModel
-                    {
-                        AddressId = address.AddressId,
-                        DeliveryAddress = address.DeliveryAddress1
-                    }).ToList(),
-                    Contacts = client.Contacts.Select(contact => new ClientContactViewModel
-                    {
-                        ContactId = contact.ContactId,
-                        ContactName = contact.ContactName,
-                        PhoneNumber = contact.PhoneNumber,
-                        Email = contact.Email,
-                        Passport = contact.Passport
-                    }).ToList()
-                })
-                .ToList();
 
-            foreach(var c in clients)
+            var accounts = _context.YandexAccounts.Select(acc => new YandexAccountViewModel
+            {
+                AccountId = acc.Id,
+                Email = acc.Email,
+                IsCurrent = acc.IsCurrent
+            }).ToList();
+
+            //++++=================================непонятно почему . но иногда не тянутся превью картинки/ в случает не архивного проекта =========================?..//
+            //var clients = _context.Clients
+            //    .Include(c => c.Projects)
+            //    .ThenInclude(p =>p.Items).ToList()
+            //    .Select(client => new ClientProjectsViewModel
+            //    {
+            //        ClientId = client.ClientId,
+            //        ClientTitle = client.Title,
+            //        City = client.City,
+            //        FirstRequestDate = client.FirstRequstDate,
+            //        Projects = client.Projects != null 
+            //            ? client.Projects.Select(project => new ClientProjectViewModel
+            //        {
+            //            ProjectId = project.ProjectId,
+            //            IsArchived = project.IsArchived,
+            //            ProjectName = project.ProjectName,
+            //            EventDate = project.EventDate,
+            //            Deadline = project.Deadline,
+            //            PaymentTotal = project.PaymentTotal,
+            //            AdvanceRate = project.AdvanceRate,
+            //            ImagePath = project.IsArchived != true
+            //                    ? $"{project.ProjectName.Replace(" ", "_").Replace(":", "_")}_previewImage.jpg"
+            //                    : project.Items.FirstOrDefault().SketchPath,
+            //            EmployeeName = project.Employee.EmployeeName
+            //        }).ToList() : new List<ClientProjectViewModel>(),
+            //        Requisites = client.Requisites.Select(requisite => new ClientRequisiteViewModel
+            //        {
+            //            RequisiteId = requisite.RequisiteId,
+            //            FileTitle = requisite.FileTitle,
+            //            FilePath = requisite.FilePath,
+            //            Comment = requisite.Comment,
+            //            UploadedAt = requisite.UploadedAt
+            //        }).ToList(),
+            //        DeliveryAddresses = client.DeliveryAddresses.Select(address => new ClientDeliveryAddressViewModel
+            //        {
+            //            AddressId = address.AddressId,
+            //            DeliveryAddress = address.DeliveryAddress1
+            //        }).ToList(),
+            //        Contacts = client.Contacts.Select(contact => new ClientContactViewModel
+            //        {
+            //            ContactId = contact.ContactId,
+            //            ContactName = contact.ContactName,
+            //            PhoneNumber = contact.PhoneNumber,
+            //            Email = contact.Email,
+            //            Passport = contact.Passport
+            //        }).ToList(),
+            //        Accounts = accounts
+            //    })
+            //    .ToList();
+
+            var clients = _context.Clients
+                    .Include(c => c.Projects)
+                        .ThenInclude(p => p.Items)
+                    .Include(c => c.Projects)
+                        .ThenInclude(p => p.Employee)
+                    .Include(c => c.Requisites)
+                    .Include(c => c.DeliveryAddresses)
+                    .Include(c => c.Contacts)
+                    .ToList() // Загружаем данные из БД перед обработкой
+                    .Select(client => new ClientProjectsViewModel
+                    {
+                        ClientId = client.ClientId,
+                        ClientTitle = client.Title,
+                        City = client.City,
+                        FirstRequestDate = client.FirstRequstDate,
+                        Projects = client.Projects != null
+                            ? client.Projects.Select(project => new ClientProjectViewModel
+                            {
+                                ProjectId = project.ProjectId,
+                                IsArchived = project.IsArchived,
+                                ProjectName = project.ProjectName,
+                                EventDate = project.EventDate,
+                                Deadline = project.Deadline,
+                                PaymentTotal = project.PaymentTotal,
+                                AdvanceRate = project.AdvanceRate,
+                                ImagePath = project.IsArchived != true
+                                   ?  project.Items?.FirstOrDefault()?.SketchPath ?? "" :
+                                    $"\\{client.Title.Replace(" ", "_").Replace(":", "_")}\\{project.ProjectName?.Replace(" ", "_").Replace(":", "_")}_previewImage.jpg"
+                                    , // Проверяем на null
+                                EmployeeName = project.Employee?.EmployeeName ?? "Не назначен" // Проверяем на null
+                            }).ToList()
+                            : new List<ClientProjectViewModel>(), // Если null, создаём пустой список
+                        Requisites = client.Requisites?
+                            .Select(requisite => new ClientRequisiteViewModel
+                            {
+                                RequisiteId = requisite.RequisiteId,
+                                FileTitle = requisite.FileTitle,
+                                FilePath = requisite.FilePath,
+                                Comment = requisite.Comment,
+                                UploadedAt = requisite.UploadedAt
+                            }).ToList() ?? new List<ClientRequisiteViewModel>(), // Если null, создаём пустой список
+                        DeliveryAddresses = client.DeliveryAddresses?
+                            .Select(address => new ClientDeliveryAddressViewModel
+                            {
+                                AddressId = address.AddressId,
+                                DeliveryAddress = address.DeliveryAddress1
+                            }).ToList() ?? new List<ClientDeliveryAddressViewModel>(), // Проверяем на null
+                        Contacts = client.Contacts?
+                            .Select(contact => new ClientContactViewModel
+                            {
+                                ContactId = contact.ContactId,
+                                ContactName = contact.ContactName,
+                                PhoneNumber = contact.PhoneNumber,
+                                Email = contact.Email,
+                                Passport = contact.Passport
+                            }).ToList() ?? new List<ClientContactViewModel>(), // Проверяем на null
+                        Accounts = accounts // Проверяем на null
+                    })
+                    .ToList();
+
+
+            foreach (var c in clients)
             {
                 foreach (var p in c.Projects)
                     Console.WriteLine("imagePath: " + p.ImagePath);
@@ -73,74 +184,518 @@ namespace ERP.Controllers
         {
             return View();
         }
+        //===========================исправить аксес токен. сохранять шифрованный===================================..
 
-        // GET: ArchiveProjectsController/Details/5
-        public ActionResult Details(int id)
+        public async Task<IActionResult> AddAccountYandex(string code, [FromServices] IOptions<YandexDiskSettings> options)
         {
-            return View();
+            if (string.IsNullOrEmpty(code))
+                return BadRequest("Код авторизации не получен");
+
+            var settings = options.Value;
+
+            using var client = new HttpClient();
+
+            var values = new Dictionary<string, string>
+            {
+                { "grant_type", "authorization_code" },
+                { "code", code },
+                { "client_id", settings.ClientId },
+                { "client_secret", settings.ClientSecret },
+
+            };
+
+            var content = new FormUrlEncodedContent(values);
+            var response = await client.PostAsync("https://oauth.yandex.ru/token", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var json = JObject.Parse(responseString);
+            var accessToken = json["access_token"]?.ToString();
+            var refreshToken = json["refresh_token"]?.ToString();
+
+            if (accessToken == null)
+                return BadRequest("Ошибка при получении токена");
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", accessToken);
+            var userResponse = await client.GetAsync("https://login.yandex.ru/info");
+            var userResponseString = await userResponse.Content.ReadAsStringAsync();
+
+            var userJson = JObject.Parse(userResponseString);
+            var email = userJson["default_email"]?.ToString() ?? "Неизвестный аккаунт";
+
+            foreach (var acc in _context.YandexAccounts)
+            {
+                acc.IsCurrent = false;
+            }
+            //===========================исправить аксес токен. сохранять шифрованный===================================..
+            var account = new YandexAccount
+            {
+                Email = email,
+                AccessToken = accessToken,
+                IsCurrent = true,
+                ExpiryDate = DateTime.UtcNow.AddYears(1)
+            };
+
+            _context.YandexAccounts.Add(account);
+            await _context.SaveChangesAsync();
+            return Redirect("/ArchiveProjects/ArchiveProjects");
         }
 
-        // GET: ArchiveProjectsController/Create
-        public ActionResult Create()
+
+
+        //===============сделать что бы запускался по истечении срока действия токена--------нахрена мне здесь action result/ запуск на сервере же--------\\
+        public async Task<ActionResult> RefreshToken(int id, [FromServices] IOptions<YandexDiskSettings> options)
         {
-            return View();
+            var account = await _context.YandexAccounts.FirstOrDefaultAsync(a => a.Id == id);
+            if (account == null)
+                return BadRequest();
+
+            var settings = options.Value;
+
+            using var client = new HttpClient();
+            var refreshValues = new Dictionary<string, string>
+            {
+                { "grant_type", "refresh_token" },
+                { "refresh_token", account.RefreshToken },
+                { "client_id", settings.ClientId },
+                { "client_secret", settings.ClientSecret }
+            };
+
+            var refreshContent = new FormUrlEncodedContent(refreshValues);
+            var refreshResponse = await client.PostAsync("https://oauth.yandex.ru/token", refreshContent);
+            var refreshResponseString = await refreshResponse.Content.ReadAsStringAsync();
+            var refreshJson = JObject.Parse(refreshResponseString);
+
+            var newAccessToken = refreshJson["access_token"]?.ToString();
+            var newRefreshToken = refreshJson["refresh_token"]?.ToString();
+
+            account.AccessToken = newAccessToken;
+            account.RefreshToken = newRefreshToken; // Если Яндекс прислал новый refresh_token
+            account.ExpiryDate = DateTime.UtcNow.AddHours(12); // Обнови срок действия
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
-        // POST: ArchiveProjectsController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+
+        //public void ArchiveFile(string filePath, string archivePath)
+        //{
+        //    // Создаём архив и добавляем в него файл
+        //    using (FileStream zipToCreate = new FileStream(archivePath, FileMode.Create))
+        //    {
+        //        using (ZipArchive archive = new ZipArchive(zipToCreate, ZipArchiveMode.Create))
+        //        {
+        //            ZipArchiveEntry readmeEntry = archive.CreateEntry(Path.GetFileName(filePath));
+        //            using (StreamWriter writer = new StreamWriter(readmeEntry.Open()))
+        //            {
+        //                using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        //                {
+        //                    fs.CopyTo(writer.BaseStream);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        //public async Task UploadFileToYandexDisk(string filePath, string accessToken)
+        //{
+        //    var fileInfo = new FileInfo(filePath);
+        //    var fileName = fileInfo.Name;
+
+        //    // Получаем ссылку для загрузки
+        //    var getUploadUrlResponse = await GetUploadUrl(accessToken);
+        //    var uploadUrl = getUploadUrlResponse.UploadUrl;
+
+        //    using (var client = new HttpClient())
+        //    {
+        //        var content = new MultipartFormDataContent
+        //{
+        //    { new StreamContent(new FileStream(filePath, FileMode.Open)), "file", fileName }
+        //};
+
+        //        var response = await client.PutAsync(uploadUrl, content);
+        //        response.EnsureSuccessStatusCode();  // Выбрасывает исключение, если запрос не удался
+        //    }
+        //}
+
+        //private async Task<dynamic> GetUploadUrl(string accessToken)
+        //{
+        //    using (var client = new HttpClient())
+        //    {
+        //        client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
+
+        //        var response = await client.GetAsync("https://cloud-api.yandex.net/v1/disk/resources/upload?path=/path/to/your/file.zip");
+        //        response.EnsureSuccessStatusCode();
+
+        //        var responseBody = await response.Content.ReadAsStringAsync();
+        //        return JsonConvert.DeserializeObject<dynamic>(responseBody);
+        //    }
+        //}
+
+
+        
+
+        public async Task<ActionResult> ArchiveProject()
+        {
+
+            // ================= в проекте записывать на какой диск сохраняется архив!!!!
+            // ================== в поле IsArchived ??? сделать его инт ??
+
+
+
+            int projectId = 0;
+            Int32.TryParse(Request.Query["projectId"], out projectId);
+            Console.WriteLine($"archive project id [{projectId}]"); 
+            var account = _context.YandexAccounts.FirstOrDefault(a => a.IsCurrent == true);
+
+            //string tempToken = "y0__xD99rw4GNuWAyDZzeGUElm_sjQdyELFBpQFzBw3aSCDJeqi";
+            Console.WriteLine($"YandexAccountId [{account.Email}]");
+
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null)
+                return NotFound("Проект не найден");
+            var client = _context.Clients.FirstOrDefault(c => c.ClientId == project.ClientId);
+            if (client == null)
+                return NotFound("client not found");
+
+            string clientTitle = client.Title.Replace(" ", "_").Replace(":", "_");
+            string projectName = project.ProjectName.Replace(" ", "_").Replace(":", "_");
+            string clientPath = Path.Combine("wwwroot", clientTitle);
+            string projectPath = Path.Combine("wwwroot", clientTitle, projectName);
+
+            try
+            {
+             
+                string sketchesDir = Path.Combine(projectPath, "Sketches");
+                string previewImagePath = Path.Combine(clientPath, $"{projectName}_previewImage.jpg");
+
+              
+
+                if (!Directory.Exists(sketchesDir))
+                {
+                    Console.WriteLine("Папка sketches не найдена.");
+                }
+
+                else
+                {
+                    string firstImage = Directory.GetFiles(sketchesDir)
+                                                 .FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".JPG") || f.EndsWith(".PNG") || f.EndsWith(".JPEG") || f.EndsWith(".jpeg"));
+
+                    if (firstImage == null)
+                    {
+                        Console.WriteLine("Изображение в sketches не найдено.");  
+                    }
+                    else 
+                    {
+                        Console.WriteLine("картинку пишем в " + previewImagePath);
+                        Console.WriteLine("из " + firstImage);
+                        ResizeImage(firstImage, previewImagePath, 300);
+                    }
+                    Console.WriteLine("прошли создание превью");
+                }
+
+                string archivePath = $"{projectName}.zip";
+                if (System.IO.File.Exists(archivePath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(archivePath);
+                        await Task.Delay(500); 
+                    }
+                    catch (IOException)
+                    {
+                        Console.WriteLine("Файл project.zip занят, повторная попытка удаления...");
+                        await Task.Delay(1000); 
+                        System.IO.File.Delete(archivePath);
+                    }
+                }
+                Console.WriteLine("прошли удаление папки если она существует");
+
+                ZipFile.CreateFromDirectory(projectPath, archivePath, CompressionLevel.Optimal, false);
+                Console.WriteLine("прошли запись в архив");
+                await Task.Delay(500);
+
+                string uploadResult = await UploadToYandexDiskAsync(archivePath, clientTitle, account.AccessToken);
+                if (!uploadResult.StartsWith("Файл загружен на Яндекс.Диск.") && !uploadResult.Contains("Файл уже существует"))
+                {
+                    Console.WriteLine(uploadResult);
+                    return BadRequest(uploadResult);
+                }
+                Console.WriteLine("прошли удаление работу с яндекс диском");
+
+                System.IO.File.Delete(archivePath);
+                await Task.Delay(1000);
+                Console.WriteLine("прошли удаление архива");
+                System.IO.File.Delete(projectPath);
+                DeleteDirectory(projectPath);
+
+                Console.WriteLine("прошли удаление папки проекта");
+                project.IsArchived = true;
+                _context.SaveChanges();
+                Console.WriteLine("Проект успешно загружен на Яндекс.Диск. фсё");
+
+                return Ok(uploadResult);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+                return BadRequest(ex.Message);
+            }          
+        }
+
+        private async Task<string> UploadToYandexDiskAsync(string filePath, string clientName, string accessToken)
+        {
+            using var client = new HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(5);
+            client.DefaultRequestHeaders.ExpectContinue = false;
+            client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
+    
+            var createFolderResponse = await client.PutAsync(
+                $"https://cloud-api.yandex.net/v1/disk/resources?path={Uri.EscapeDataString(clientName)}",
+                null
+            );
+
+            if (createFolderResponse.StatusCode != System.Net.HttpStatusCode.Created &&
+                createFolderResponse.StatusCode != System.Net.HttpStatusCode.Conflict) // 409 - уже существует
+            {
+                Console.WriteLine($"Ошибка при создании папки: {createFolderResponse.StatusCode}");
+                // return;
+            }
+            else
+                Console.WriteLine("Папка проверена/создана.");
+
+            string diskFilePath = $"{clientName}/{Path.GetFileName(filePath)}";
+            Console.WriteLine($"download to disk/diskFilePath: {diskFilePath} ");
+            var uploadUrlResponse = await client.GetAsync(
+                $"https://cloud-api.yandex.net/v1/disk/resources/upload?path={Uri.EscapeDataString(diskFilePath)}");
+
+
+            var content = await uploadUrlResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Yandex Response: {content}");
+
+            var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+            if (!uploadUrlResponse.IsSuccessStatusCode)
+            {      
+                if (json.TryGetProperty("error", out var errorCode) &&
+                    errorCode.GetString() == "DiskResourceAlreadyExistsError")
+                {
+                    Console.WriteLine("Файл уже существует, загрузка пропущена.");
+                    return $"Файл уже существует: {diskFilePath}";
+                }
+                else
+                {
+                    Console.WriteLine($"Ошибка при получении ссылки загрузки: {content}");
+                    return $"Ошибка при получении ссылки загрузки: {content}";
+                }  
+            }
+
+            json.TryGetProperty("href", out var uploadUrl);   
+            using var fileStream = System.IO.File.OpenRead(filePath);
+            var uploadResponse = await client.PutAsync(uploadUrl.GetString(), new StreamContent(fileStream));
+
+            //var uploadResponse = await client.PutAsync(uploadUrl.GetString(), new StreamContent(fileStream),
+            //                               HttpCompletionOption.ResponseHeadersRead);
+
+            if (uploadResponse.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Файл загружен на Яндекс.Диск.");
+                return "Файл загружен на Яндекс.Диск.";
+            }
+            else
+            {
+                Console.WriteLine($"Ошибка загрузки: {uploadResponse.StatusCode}");
+                return $"Ошибка загрузки: {uploadResponse.StatusCode}";
+            }
+        }
+
+
+
+        [HttpGet("/ArchiveProjects/DownloadAndExtractProjectAsync")]
+        public async Task<ActionResult> DownloadAndExtractProjectAsync()
+        {
+            int projectId = 0;
+            Int32.TryParse(Request.Query["projectId"], out projectId);
+            Console.WriteLine($"download from archive project id [{projectId}]");
+
+            var account = _context.YandexAccounts.FirstOrDefault(a => a.IsCurrent == true);
+
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null)
+                return NotFound("Проект не найден");
+
+            var client = _context.Clients.FirstOrDefault(c => c.ClientId == project.ClientId);
+
+            if (client == null)
+                return NotFound("client not found");
+
+            string clientTitle = client.Title.Replace(" ", "_").Replace(":", "_");
+            string projectName = project.ProjectName.Replace(" ", "_").Replace(":", "_");
+
+            string projectPath = Path.Combine("wwwroot", clientTitle, projectName);
+
+            string diskPath = $"{clientTitle}/{Path.GetFileName(projectName)}.zip";
+
+            try
+            {
+
+                if (!Directory.Exists(projectPath))
+                {
+                    Directory.CreateDirectory(projectPath);
+                    Console.WriteLine($"Создана папка: {projectPath}");
+                }
+
+                string extractPath = Path.Combine(projectPath, "project.zip");
+                string downloadResult = await DownloadFromYandexDiskAsync(diskPath, extractPath, account.AccessToken);
+
+                if (!downloadResult.StartsWith("Файл успешно скачан"))
+                {
+                    Console.WriteLine(downloadResult);
+                    return BadRequest(downloadResult);
+                }
+
+                
+                if (System.IO.File.Exists(extractPath))
+                {
+                    ZipFile.ExtractToDirectory(extractPath, projectPath, true);
+                    System.IO.File.Delete(extractPath);
+                    Console.WriteLine("Проект разархивирован.");
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка: архив не найден.");
+                    return BadRequest("Ошибка: архив не найден.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+                return StatusCode(500, "Ошибка сервера: " + ex.Message);
+            }
+            project.IsArchived = false;
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        private async Task<string> DownloadFromYandexDiskAsync(string diskPath, string localPath, string accessToken)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                using var client = new HttpClient();
+                client.Timeout = TimeSpan.FromMinutes(5);
+                client.DefaultRequestHeaders.ExpectContinue = false;
+                client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
+
+                // Получаем ссылку на скачивание
+                Console.WriteLine("DownloadFromYandexDiskAsync");
+                Console.WriteLine($"яндекс -- diskPath: {diskPath}");
+
+                var response = await client.GetAsync($"https://cloud-api.yandex.net/v1/disk/resources/download?path={diskPath}");
+                var content = await response.Content.ReadAsStringAsync();
+                var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+
+                if (!json.TryGetProperty("href", out var downloadUrl))
+                {
+                    Console.WriteLine("Не удалось получить ссылку для скачивания.");
+                    return "Не удалось получить ссылку для скачивания.";
+                }
+
+                Console.WriteLine("ссыль получили ");
+                var fileBytes = await client.GetByteArrayAsync(downloadUrl.GetString());
+                Console.WriteLine("получили байты");
+                await System.IO.File.WriteAllBytesAsync(localPath, fileBytes);
+
+                Console.WriteLine("переписали байты на сервер ");
+                return "Файл успешно скачан.";
             }
-            catch
+            catch (Exception ex) 
             {
-                return View();
+                return $"Ошибка: {ex.Message}";
+            }
+ 
+        }
+
+        //public void ExtractFileFromArchive(string archivePath, string extractPath)
+        //{
+        //    // Открываем архив
+        //    using (FileStream zipToOpen = new FileStream(archivePath, FileMode.Open))
+        //    {
+        //        using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
+        //        {
+        //            foreach (ZipArchiveEntry entry in archive.Entries)
+        //            {
+        //                // Извлекаем файл в указанную директорию
+        //                string destinationPath = Path.Combine(extractPath, entry.FullName);
+        //                entry.ExtractToFile(destinationPath, overwrite: true);
+        //            }
+        //        }
+        //    }
+        //}
+
+        public static void ResizeImage(string firstImage, string previewImagePath, int newHeight)
+        {
+            using (var image = System.Drawing.Image.FromFile(firstImage))
+            {
+                int newWidth = (int)((double)newHeight / image.Height * image.Width);
+                using (var resized = new Bitmap(newWidth, newHeight))
+                {
+                    using (var graphics = Graphics.FromImage(resized))
+                    {
+                        graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                        graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                        graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+                    }
+                    resized.Save(previewImagePath, ImageFormat.Jpeg);
+                }
             }
         }
 
-        // GET: ArchiveProjectsController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
+        //private void ResizeImage(string inputPath, string outputPath)
+        //{
+        //    using var input = System.IO.File.OpenRead(inputPath);
+        //    using var bitmap = SKBitmap.Decode(input);
 
-        // POST: ArchiveProjectsController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        //    int newHeight = 300;
+        //    int newWidth = bitmap.Width * newHeight / bitmap.Height;
+
+        //    using var resized = bitmap.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.High);
+        //    using var image = SKImage.FromBitmap(resized);
+        //    using var output = System.IO.File.OpenWrite(outputPath);
+
+        //    image.Encode(SKEncodedImageFormat.Jpeg, 90).SaveTo(output);
+        //    Console.WriteLine("Создано превью изображение.");
+        //}
+        private void DeleteDirectory(string targetDir)
         {
+            if (!Directory.Exists(targetDir))
+                return;
+            foreach (var file in Directory.GetFiles(targetDir))
+            {
+                try
+                {
+                    System.IO.File.SetAttributes(file, FileAttributes.Normal);
+                    System.IO.File.Delete(file);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при удалении файла {file}: {ex.Message}");
+                }
+            }
+            foreach (var dir in Directory.GetDirectories(targetDir))
+            {
+                DeleteDirectory(dir);
+            }
             try
             {
-                return RedirectToAction(nameof(Index));
+                Directory.Delete(targetDir, true); // true - удаляет даже если есть файлы
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                Console.WriteLine($"Ошибка при удалении папки {targetDir}: {ex.Message}");
             }
         }
 
-        // GET: ArchiveProjectsController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
 
-        // POST: ArchiveProjectsController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
     }
 }
+    
+

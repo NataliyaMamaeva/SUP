@@ -1,9 +1,18 @@
 //using ERP.Data;
 using ERP.Models;
+using ERP.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Globalization;
+
+
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.DataProtection;
+
 
 namespace ERP
 {
@@ -11,8 +20,6 @@ namespace ERP
     {
         public static async Task Main(string[] args)
         {
-
-
             var cultureInfo = new CultureInfo("en-US"); // Устанавливаем культуру с точкой
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
@@ -23,6 +30,7 @@ namespace ERP
             builder.Services.AddDbContext<ErpContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            builder.Services.AddHttpClient();
 
             //builder.Services.AddDefaultIdentity<ErpUser>(options => options.SignIn.RequireConfirmedAccount = true)
             //    .AddEntityFrameworkStores<ErpContext>();
@@ -32,6 +40,30 @@ namespace ERP
             builder.Services.AddIdentity<ErpUser, IdentityRole>()
                 .AddEntityFrameworkStores<ErpContext>()
                 .AddDefaultTokenProviders(); // Добавляет токены для сброса пароля и других функций 
+
+            builder.Services.Configure<YandexDiskSettings>(builder.Configuration.GetSection("YandexDisk"));
+
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();  // Для вывода логов в консоль
+            builder.Logging.AddFile("Logs/app-log-{Date}.txt"); // Для вывода логов в файл
+          
+
+
+            builder.Services.AddHttpClient<IYandexDiskService, YandexDiskService>((provider, client) =>
+            {
+                var config = provider.GetRequiredService<IConfiguration>();
+                string accessToken = config["YandexDisk:AccessToken"];
+
+                client.BaseAddress = new Uri("https://cloud-api.yandex.net/v1/disk/");
+                client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
+            });
+            //builder.Services.AddHttpClient<IYandexDiskService, YandexDiskService>()
+            //    .AddTypedClient((httpClient, provider) =>
+            //    {
+            //        var options = provider.GetRequiredService<IOptions<YandexDiskSettings>>();
+            //        return new YandexDiskService(httpClient, options.Value.AccessToken);
+            //    });
 
 
             //builder.Services.ConfigureApplicationCookie(options =>
@@ -98,65 +130,85 @@ namespace ERP
                 pattern: "{controller=CurrentProjects}/{action=Index}");
             app.MapRazorPages();
 
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var services = scope.ServiceProvider;
-            //    var userManager = services.GetRequiredService<UserManager<ErpUser>>();
-            //    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-            //    var context = services.GetRequiredService<ErpContext>();
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var userManager = services.GetRequiredService<UserManager<ErpUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var context = services.GetRequiredService<ErpContext>();
 
-            //    // Ensure the database is up-to-date
-            //    await context.Database.MigrateAsync();
+                // Ensure the database is up-to-date
+                await context.Database.MigrateAsync();
 
-            //    string adminRole = "Boss";
-            //    if (!await roleManager.RoleExistsAsync(adminRole))
-            //    {
-            //        await roleManager.CreateAsync(new IdentityRole(adminRole));
-            //    }
+                string adminRole = "Boss";
+                if (!await roleManager.RoleExistsAsync(adminRole))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(adminRole));
+                }
 
-            //    const string bossEmail = "natalija.mamaeva@yandex.ru";
-            //    const string bossPhone = "+79153144204";
-            //    const string bossName = "Наталия Дмитриевна Мамаева";
-            //    const string bossPassword = "SecurePassword123!"; // Установите сложный пароль
+                const string bossEmail = "natalija.mamaeva@yandex.ru";
+                const string bossPhone = "+79153144204";
+                const string bossName = "Наталия Дмитриевна Мамаева";
+                const string bossPassword = "SecurePassword123!"; // Установите сложный пароль
 
-            //    var bossUser = await userManager.FindByEmailAsync(bossEmail);
-            //    if (bossUser == null)
-            //    {
-            //        Employee employee = new Employee
-            //        {
-            //            EmployeeName = bossName,
-            //            PhoneNumber = bossPhone,
-            //            Email = bossEmail,
-            //            Position = "Boss"
-            //        };
+                var bossUser = await userManager.FindByEmailAsync(bossEmail);
+                if (bossUser == null)
+                {
+                    Employee employee = new Employee
+                    {
+                        EmployeeName = bossName,
+                        PhoneNumber = bossPhone,
+                        Email = bossEmail,
+                        Position = "Boss"
+                    };
 
-            //        bossUser = new ErpUser
-            //        {
-            //            UserName = bossEmail,
-            //            Email = bossEmail,
-            //            PhoneNumber = bossPhone,
-            //            Employee = employee
-            //        };
+                    bossUser = new ErpUser
+                    {
+                        UserName = bossEmail,
+                        Email = bossEmail,
+                        PhoneNumber = bossPhone,
+                        Employee = employee
+                    };
 
-            //        context.Employees.Add(employee);
-            //        await context.SaveChangesAsync();  // Save employee before creating the user
+                    context.Employees.Add(employee);
+                    await context.SaveChangesAsync();  // Save employee before creating the user
 
-            //        var result = await userManager.CreateAsync(bossUser, bossPassword);
-            //        if (result.Succeeded)
-            //        {
-            //            await userManager.AddToRoleAsync(bossUser, adminRole);  // Make sure role matches
-            //            Console.WriteLine("Первый пользователь 'Boss' успешно создан.");
-            //        }
-            //        else
-            //        {
-            //            Console.WriteLine("Ошибка создания пользователя:");
-            //            foreach (var error in result.Errors)
-            //            {
-            //                Console.WriteLine($"Код ошибки: {error.Code}, Описание: {error.Description}");
-            //            }
-            //        }
-            //    }
-            //}
+                    var result = await userManager.CreateAsync(bossUser, bossPassword);
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(bossUser, adminRole);  // Make sure role matches
+                        Console.WriteLine("Первый пользователь 'Boss' успешно создан.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ошибка создания пользователя:");
+                        foreach (var error in result.Errors)
+                        {
+                            Console.WriteLine($"Код ошибки: {error.Code}, Описание: {error.Description}");
+                        }
+                    }
+                }
+            }
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                string master = "Master";
+                if (!await roleManager.RoleExistsAsync(master))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(master));
+                }
+                string designer = "Designer";
+                if (!await roleManager.RoleExistsAsync(designer))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(designer));
+                }
+                string phoneManager = "PhoneManager";
+                if (!await roleManager.RoleExistsAsync(phoneManager))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(phoneManager));
+                }
+            }
 
             app.Run();
         }

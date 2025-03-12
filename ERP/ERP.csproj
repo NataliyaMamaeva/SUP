@@ -18,12 +18,18 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+    <PackageReference Include="SkiaSharp" Version="3.116.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\Migrations\" />
     <Folder Include="Views\Account\" />
     <Folder Include="Views\ArchiveProjects\" />
     <Folder Include="Views\Home\" />
+    <Folder Include="wwwroot\DAB_running\test\журналФото\" />
+    <Folder Include="wwwroot\даб_ещё_что_нибудь\" />
   </ItemGroup>
 
   <ItemGroup>

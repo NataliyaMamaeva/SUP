@@ -46,6 +46,10 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
     public virtual DbSet<ItemsType> ItemTypes { get; set; }
     public virtual DbSet<Material> Materials { get; set; }
     public virtual DbSet<TaskItem> Tasks { get; set; }
+    public virtual DbSet<ProjectPayment> ProjectPayments { get; set; }
+    public virtual DbSet<SalaryEmployeeMonth> SalaryEmployeeMonths { get; set; }
+
+    public virtual DbSet<YandexAccount> YandexAccounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -71,6 +75,28 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
 
             entity.Property(e => e.City).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<YandexAccount>(entity =>
+        {
+            entity.HasKey(a => a.Id);  // Первичный ключ
+
+            entity.Property(a => a.Email)
+            .IsRequired()
+            .HasMaxLength(255);
+
+            entity.Property(a => a.AccessToken)
+            .IsRequired();
+
+            entity.Property(a => a.RefreshToken)
+            .IsRequired();
+
+            entity.Property(a => a.ExpiryDate)
+            .IsRequired();
+
+            entity.Property(a => a.CreatedAt)
+            .HasDefaultValueSql("GETDATE()");
+
         });
 
         modelBuilder.Entity<Contact>(entity =>
@@ -111,6 +137,7 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
             entity.Property(e => e.PhoneNumber).HasMaxLength(15);
             entity.Property(e => e.Position).HasMaxLength(50);
             entity.Property(e => e.Passport).HasMaxLength(150);
+            entity.Property(i => i.BossId).HasColumnName("BossId");
         });
 
         modelBuilder.Entity<Item>(entity =>
@@ -159,6 +186,9 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
             entity.HasOne(d => d.Employee).WithMany(p => p.Projects)
                 .HasForeignKey(d => d.EmployeeId)
                 .HasConstraintName("FK__Project__Employe__412EB0B6");
+
+            entity.Property(p => p.EmployeePayment)
+                .HasPrecision(18, 2);
         });
 
         modelBuilder.Entity<ProjectFile>(entity =>
@@ -253,6 +283,38 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
                 .HasForeignKey(d => d.ProjectId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Task__ProjectId__75A278F5");
+        });
+
+        modelBuilder.Entity<ProjectPayment>(entity =>
+        {
+            entity.HasKey(e => e.ProjectPaymentId).HasName("PK__ProjectP__D131DB604907FF91");
+
+            entity.ToTable("ProjectPayment");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(8, 2)");
+            entity.Property(e => e.Punishment).HasColumnType("decimal(8, 2)");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.ProjectPayments)
+                .HasForeignKey(d => d.ProjectId)
+                .HasConstraintName("FK__ProjectPa__Proje__7D439ABD");
+
+            entity.HasOne(d => d.Salary).WithMany(p => p.ProjectPayments)
+                .HasForeignKey(d => d.SalaryId)
+                .HasConstraintName("FK__ProjectPa__Salar__7C4F7684");
+        });
+
+        modelBuilder.Entity<SalaryEmployeeMonth>(entity =>
+        {
+            entity.HasKey(e => e.SalaryId).HasName("PK__SalaryEm__4BE2045780727A81");
+
+            entity.ToTable("SalaryEmployeeMonth");
+
+            entity.Property(e => e.FinallyAmount).HasColumnType("decimal(8, 2)");
+            entity.Property(e => e.FixSalary).HasColumnType("decimal(8, 2)");
+
+            entity.HasOne(d => d.Employee).WithMany(p => p.SalaryEmployeeMonths)
+                .HasForeignKey(d => d.EmployeeId)
+                .HasConstraintName("FK__SalaryEmp__Emplo__797309D9");
         });
 
         OnModelCreatingPartial(modelBuilder);

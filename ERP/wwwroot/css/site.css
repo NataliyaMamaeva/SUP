@@ -8,10 +8,10 @@
     box-sizing: border-box;
 }
 
-    * [type="hidden"] {
-        position: absolute;
-        left: -9999px;
-    }
+* [type="hidden"] {
+    position: absolute;
+    left: -9999px;
+}
 
 body {
     font-family: Arial, sans-serif;
@@ -49,6 +49,12 @@ input, select, button, a {
     transition: all 0.3s ease;
 }
 
+td input[type="date"], td input[type="file"] {
+    max-width: 80px;
+}
+
+
+
 pre {
     text-align: left;
     height: min-content;
@@ -64,9 +70,9 @@ textarea {
     min-height: 50px; /* Минимальная высота */
 }
 
-select {
+/*select {
     min-width: 150px;
-}
+}*/
 
 h3, h2 {
     white-space: nowrap;
@@ -103,7 +109,9 @@ input:focus, select:focus, button:hover {
 button {
     cursor: pointer;
     background: rgba(0, 0, 0, 0.7);
-    margin: 3px;
+    margin: 1px;
+    display: block;
+    /* margin: 3px;*/
 }
 
     button:hover {
@@ -111,15 +119,22 @@ button {
         color: #000;
     }
 
+.buttonSmall{
+    width: fit-content;
+}
+
 label {
     display: block;
     font-size: 14px;
     color: #fff;
     margin-bottom: 5px;
 }
+.for-label{
+    display:inline;
+}
 
 input {
-    width: 100%;
+    /*width: 100%;*/
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -173,7 +188,7 @@ input {
 .btn {
     width: 100%;
     padding: 10px;
-    margin-top: 10px;
+    margin: 2px;
     background-color: #00ffcc;
     border: none;
     border-radius: 5px;
@@ -186,6 +201,10 @@ input {
 
 .btn:hover {
     background-color: #009988;
+}
+
+.red{
+    background-color:darkred;
 }
 
 .forgot-password {
@@ -213,7 +232,7 @@ input {
     backdrop-filter: blur(10px);
     padding: 10px;
     border-radius: 10px;
-    margin: 20px;
+    margin-top: 20px;
     width: 100%;
 }
 
@@ -251,16 +270,31 @@ input {
     border-radius: 10px;
 }
 
-.project {
+/*.project {
     display: flex;
-    flex-direction: column; /* Карточки остаются вертикальными внутри */
-    width: calc(17% - 15px); /* Устанавливаем ширину карточки */
+    flex-direction: column;*/ /* Карточки остаются вертикальными внутри */
+    /*width: calc(17% - 15px);*/ /* Устанавливаем ширину карточки */
+    /*background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}*/
+
+.project {
+    width: calc(17% - 15px);
+    min-width: 150px; /* Минимальная ширина */
+    max-width: 200px; /* Ограничение на слишком широкие карточки */
+    display: flex;
+    flex-direction: column;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
     padding: 10px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
+
+
 
     .project img {
         width: 100%;
@@ -343,6 +377,7 @@ input {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     padding: 15px;
+    min-width: 200px;
 }
 
 .close-btn {
@@ -413,10 +448,6 @@ input {
         border-radius: 10px;
         object-fit: cover;
     }
-
-input[type="date"]{
-    max-width: 100px;
-}
 
 .add-row-btn {
     margin-top: -15px;
@@ -533,8 +564,67 @@ input[type="date"]{
 } */
 
 
-/*-----------------------------календарь / планер задач----------------------------------*/
+.project_card_div div {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Расстояние между заголовком и инпутом */
+    margin-bottom: 10px;
+}
 
+.project_card_div label {
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 150px; /* Минимальная ширина для заголовков */
+}
+
+.project_card_div input,
+.project_card_div select {
+    flex-grow: 1;
+}
+
+.table-container {
+    overflow-x: auto; /* Горизонтальная прокрутка, если не влезает */
+    max-width: 100%;
+}
+
+table {
+    width: 100%;
+    white-space: nowrap;
+}
+
+/*.table th, .table td {
+    padding: 2px;
+    word-wrap: break-word;
+}
+*/
+.select-small {
+    width: min-content !important;
+    display: inline-block;
+}
+
+/*td select {
+    width: min-content;
+} */
+
+.btn-danger.remove-item {
+   /* margin-left: 10px;*/
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+    .btn-danger.remove-item:hover {
+        opacity: 1;
+    }
+
+#itemTypeSelect {
+    width: 50px;
+    overflow: hidden;
+}
+
+#projectName{
+    width: fit-content;
+}
+/*-----------------------------календарь / планер задач----------------------------------*/
 .calendar-container {
     overflow: auto;
     height: 90%;
@@ -570,27 +660,14 @@ input[type="date"]{
     margin: 1%;
     flex-direction: column;
     justify-content: space-between;
-    overflow: scroll;
+    /*   overflow: scroll;*/
+    justify-content: flex-start; /* Верхнее выравнивание содержимого */
+    overflow: scroll; /* Скрываем содержимое за пределами блока */
 }
 
-::-webkit-scrollbar {
-    width: 0;
-}
-
-.calendar-cell .add-task-btn {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-    background: black;
-    border: none;
-    color: white;
-    border-radius: 50%;
-    font-size: 20px;
-    line-height: 30px;
-    text-align: center;
-    cursor: pointer;
+.today {
+    border-style: solid;
+    border-color: red;
 }
 
 .empty-calendar-cell {
@@ -621,9 +698,33 @@ input[type="date"]{
     overflow: scroll;
 }
 
+::-webkit-scrollbar {
+    width: 0;
+}
+
+.calendar-cell .add-task-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background: black;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+}
+
 .calendar-cell .add-task-btn:hover {
     background: #333;
 }
+
+    .weekend .add-task-btn:hover {
+        background: #333;
+    }
 
 .add-task-btn {
     background: black;
@@ -669,6 +770,8 @@ input[type="date"]{
     justify-content: center;
     align-items: center;
 }
+
+
 
 .modal-content {
     background: rgba(255, 255, 255, 0.2);
@@ -841,6 +944,14 @@ input[type="date"]{
     left: 0;
 }
 
+h6.right {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+
     .client-header:hover {
         background-color: #34495e;
     }
@@ -872,3 +983,56 @@ input[type="date"]{
         .requisite-item a:hover, .contact-item a:hover {
             text-decoration: underline;
         }
+
+
+
+/*//----------------------------------salary--------------------------//*/
+
+.monthSalaryCircle{
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    margin:10px;
+}
+.redCircle{
+    background-color:red;
+}
+.greenCircle{
+    background-color:green;
+}
+
+
+
+/*--------------------------------радио кнопки----------------------------*/
+
+.radio-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+/* Стили для самого радиобаттона */
+input[type="radio"] {
+    appearance: none; /* Убираем стандартный вид */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+}
+
+    /* Когда радиобаттон выбран */
+    input[type="radio"]:checked {
+        background-color: red;  
+    }
+
+
+.archiveCard {
+    background: rgba(33, 33, 33, 0.5);
+}
+    

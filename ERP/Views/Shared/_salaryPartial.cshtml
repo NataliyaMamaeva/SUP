@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    string[] months = { "январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь" };
+
+}
+
+@model List<ERP.ViewModels.SalaryViewModel>
+ 
+   @foreach (var salary in Model.OrderBy(c => c.MonthPointer))
+    {
+    <div class="client-container">
+        <div class="header client-header" onclick="toggleProjects(this)">
+            @if (salary.IsClosed == true)
+            {
+                <div class="monthSalaryCircle redCircle"></div>
+            }
+            else
+            {
+                <div class="monthSalaryCircle greenCircle"></div>
+            }
+            <h5> @months[salary.MonthPointer.Month - 1]   @salary.MonthPointer.Year</h5>
+            <h6 class="right">итог: @salary.FinallyAmount</h6>
+            @if (salary.IsClosed != true)
+            {
+                <button class="buttonSmall" onclick="CloseMonth(@salary.SalaryId)">ЗАКРЫТЬ МЕСЯЦ</button>
+            }
+        </div>
+             <div class="client-details hidden"> 
+                <table class="table table-dark table-striped table-bordered text-center align-middle items">
+                    <thead>
+                        <tr>
+                            <th>Проект</th>                    
+                            <th>Часть</th>
+                            <th>Сумма</th>
+                            <th >Штраф</th>
+                            <th>Причина</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in salary.ProjectPayments)
+                    {
+                        <tr data-project-payment-id="@item.projectPaymentId">
+                            <td>@item.projectTitle
+                                @if (item.isStagerAdd == true)
+                                {
+                                    <p>(СТАЖЁР)</p>
+                                }
+                                else
+                                {
+                                    <p>(СВОЙ)</p>
+                                }    
+                            </td>
+                           
+                            <td>
+                                @if (item.partNumber == null)
+                                {
+                                    <p>весь</p>
+                                }
+                                else
+                                {
+                                    <p>@item.partNumber / @item.partsCount</p>
+                                }
+                            </td>
+                            <td>@item.amount</td>
+                                @if (User.IsInRole("Boss") && salary.IsClosed != true)
+                                {
+                                    <td> <input type="number" value="@item.punishment"></td>
+                                }
+                                else
+                                {
+                                    <td>@item.punishment</td>
+                                }
+                            @if (User.IsInRole("Boss") && salary.IsClosed != true)
+                                {
+                                  <td>  <input type="text" value="@item.punishmentDescription" ></td>
+                                }
+                                else
+                                {
+                                    <td class="item-description"><pre>@item.punishmentDescription</pre></td>
+                                }
+                       
+                        </tr>  
+                    }
+                    </tbody>
+                </table>
+            @if (User.IsInRole("Boss") && salary.IsClosed != true )
+            {
+                <button onclick="savePunishments(this, @Model[0].EmployeeId) ">СОХРАНИТЬ</button>
+            }
+        </div>
+        </div>
+    }
+
+
+<script>
+    function toggleProjects(header) {
+        const details = header.nextElementSibling;
+        details.classList.toggle('hidden');
+    }
+</script>
+

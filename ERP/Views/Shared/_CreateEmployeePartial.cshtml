@@ -19,14 +19,28 @@
     <input id="Email" asp-for="Email" name="Email" placeholder="Почта" type="email" required>
 
     <input id="Passport" asp-for="Passport" name="Passport" placeholder="паспорт" type="text" required>
+  
+   <span>Должность: </span> 
+    <select id="Position" asp-for="Position" name="Position">
+        @if (ViewBag.Positions != null)
+        {
+        @foreach (var position in ViewBag.Positions as List<string>)
+        {              
+             <option value="@position">@position</option>        
+        }
+        }
+    </select>
 
-   @*  <label for="positionSelect">Должность</label> *@
-  @*  <span>Должность</span> *@
-    <select asp-for="Position" id="positionSelect" required>
-        <option value="Должность">Должность</option>
-        <option value="Мастер">Мастер</option>
-        <option value="Дизайнер">Дизайнер</option>
-        <option value="Менеджер на телефоне">Менеджер на телефоне</option>
+    <span>Босс: </span>
+    <select asp-for="BossId" id="BossId" name="BossId">
+        <option value="">Нет босса</option>
+        @if (ViewBag.Bosses != null)
+        {
+        @foreach (var boss in ViewBag.Bosses as List<Employee>)
+        {
+            <option value="@boss.EmployeeId">@boss.EmployeeName</option>
+        }
+        }
     </select>
 
     <input asp-for="Password" id="EmployeePassword" name="Password" placeholder="Пароль" type="text" required>

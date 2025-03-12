@@ -1,0 +1,112 @@
+﻿
+
+@model Employee
+
+<form asp-action="UpdateEmployee" asp-controller="CurrentProjects" method="post" >
+    <input type="hidden" asp-for="EmployeeId" />
+    <h3>@Model.EmployeeName</h3>
+    <div>
+        <label>Телефон:</label>
+        <input type="text" id="PhoneNumber" asp-for="PhoneNumber"/>
+    </div>
+    <div>
+        <label>Паспорт:</label>
+        <input type="text" id="Passport" asp-for="Passport"/>
+    </div>
+    <div>
+        <label>Email:</label>
+        <input type="email" id="Email" asp-for="Email"/>
+    </div>
+    <div>
+        <label>Должность:</label>
+        @if (User.IsInRole("Boss"))
+        {
+            <select id="Position" asp-for="Position" name="Position">
+                @foreach (var position in ViewBag.Positions as List<string>)
+                {
+                    if (position == Model.Position)
+                    {
+                        <option value="@position" selected>@position</option>
+                    }
+                    else
+                    {
+                        <option value="@position">@position</option>
+                    }
+                }
+            </select>
+        }
+        else
+        {
+            <span id="Position">@Model.Position</span>
+        }
+
+    </div>
+    <div>
+        <label>Руководитель:</label>
+        @if (User.IsInRole("Boss"))
+        {
+            <select asp-for="BossId" id="BossId" name="BossId">
+                <option value="">Нет босса</option>
+                @foreach (var boss in ViewBag.Bosses as List<Employee>)
+                {
+                    if (boss.EmployeeId == Model.BossId)
+                    {
+                        <option value="@boss.EmployeeId" selected>@boss.EmployeeName</option>
+                    }
+                    else
+                    {
+                        <option value="@boss.EmployeeId" >@boss.EmployeeName</option>
+                    }      
+                }
+            </select>
+        }
+        else
+        {
+            if(Model.BossId == null)
+            {
+                <span id="BossId">нет</span>
+            }
+            else
+            {
+                <span id="BossId">@Model.Boss.EmployeeName</span>
+            }           
+        }
+    </div>
+    <button type="submit" >Сохранить</button>
+    <button type="button" onclick="fireEmployee('@Model.EmployeeId')" class="btn btn-danger red">Уволить</button>
+
+</form>
+@* 
+<script>
+    function saveEmployee(employeeId) {
+
+        var bossId = document.getElementById("BossId").value;
+        // Если выбран "Нет босса", то передаём null
+        if (bossId === "") {
+            bossId = null;
+        }
+       
+        var data = {
+            EmployeeId: employeeId,
+            PhoneNumber: document.getElementById("PhoneNumber").value,
+            Passport: document.getElementById("Passport").value,
+            Email: document.getElementById("Email").value,
+            Position: document.getElementById("Position").value,
+            BossId: bossId
+        };
+
+        console.log(data);
+
+        fetch('/CurrentProjects/UpdateEmployee', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        }).then(response => response.json())
+            .then(result => {
+                alert(result.message);
+            });
+    }
+</script>
+ *@
