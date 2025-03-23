@@ -16,16 +16,25 @@ public partial class Project
     public int? ClientId { get; set; }
     public int? DeliveryToAddress { get; set; }
     public int? DeliveryToContact { get; set; }
+   // public int? ArchiveAccountId { get; set; }
+
+    public string? ArchiveAccountEmail { get; set; }
+    public string? LayoutsRequired { get; set; }
+    public bool? IsDocumentsComleted { get; set; }
+
     public decimal? PaymentTotal { get; set; }
     public decimal? AdvanceRate { get; set; }
     public string? Description { get; set; }
-    public string? Journal { get; set; }
+
+    //public string? Journal { get; set; }
+
     public decimal? EmployeePayment {  get; set; }
     public virtual Client? Client { get; set; }
     public virtual DeliveryAddress? DeliveryToAddressNavigation { get; set; }
     public virtual Contact? DeliveryToContactNavigation { get; set; }
     public virtual Employee? Employee { get; set; }
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
+    public virtual ICollection<JournalNote>? JournalNotes { get; set; } = new List<JournalNote>();
     public virtual ICollection<ProjectFile>? ProjectFiles { get; set; } = new List<ProjectFile>();
     public virtual ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public virtual ICollection<ProjectPayment> ProjectPayments { get; set; } = new List<ProjectPayment>();

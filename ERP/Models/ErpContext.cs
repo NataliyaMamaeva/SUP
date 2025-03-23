@@ -48,12 +48,29 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
     public virtual DbSet<TaskItem> Tasks { get; set; }
     public virtual DbSet<ProjectPayment> ProjectPayments { get; set; }
     public virtual DbSet<SalaryEmployeeMonth> SalaryEmployeeMonths { get; set; }
-
     public virtual DbSet<YandexAccount> YandexAccounts { get; set; }
+    public virtual DbSet<EmailConfirmation> EmailConfirmations { get; set; }
+    public virtual DbSet<JournalTopic> JournalTopics { get; set; }
+    public virtual DbSet<JournalNote> JournalNotes { get; set; }
+
+
+
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+
+    //    => optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;" +
+    //        "Database=aspnet-ERP-a9c9ae8d-072e-4486-bb33-3ba9ed06aef2;Trusted_Connection=" +
+    //        "True;MultipleActiveResultSets=true",
+    //         options => options.EnableRetryOnFailure());
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=aspnet-ERP-a9c9ae8d-072e-4486-bb33-3ba9ed06aef2;Trusted_Connection=True;MultipleActiveResultSets=true");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer("Server=ms-sql-10.in-solve.ru;User Id=1gb_workshop-sup;Password=EQY9s44BuUTj;" +
+                "Database=1gb_workshop-sup;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=true;",
+                options => options.EnableRetryOnFailure());
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -106,8 +123,8 @@ public partial class ErpContext : IdentityDbContext<ErpUser>
             entity.ToTable("Contact");
 
             entity.Property(e => e.ContactName).HasMaxLength(100);
-            entity.Property(e => e.Email).HasMaxLength(30);
-            entity.Property(e => e.PhoneNumber).HasMaxLength(15);
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(30);
 
             entity.HasOne(d => d.Client).WithMany(p => p.Contacts)
                 .HasForeignKey(d => d.ClientId)

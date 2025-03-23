@@ -10,11 +10,14 @@
         public decimal? EmployeePayment { get; set; }
         public DateOnly? PaymentDate {  get; set; } 
         public List<ItemViewModel>? Items { get; set; }
+        public string? LayoutsRequired { get; set; }
+        public bool? IsDocumentsComleted { get; set; }
 
         public List<ProjectFileUploadViewModel>? ProjectFiles { get; set; }
         public override string ToString()
         {
-            return $"ProjectId: {ProjectId}, ProjectName: {ProjectName}, Deadline: {Deadline}, " +
+            return $"ProjectId: {ProjectId}, ProjectName: {ProjectName},IsDocumentsComleted: {IsDocumentsComleted}," +
+                $"LayoutsRequired:{LayoutsRequired},  Deadline: {Deadline}, " +
                    $"ClientId: {ClientId}, EmployeeId: {EmployeeId}, EmployeePayment: {EmployeePayment}, " +
                    $"Items: [{string.Join(", ", Items ?? new List<ItemViewModel>())}], " +
                    $"ProjectFiles: [{string.Join(", ", ProjectFiles ?? new List<ProjectFileUploadViewModel>())}]";

@@ -11,7 +11,7 @@
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
-    <input type="hidden" id="ClientId" name="model.ClientId" asp-for="ClientId">
+@*     <input type="hidden" id="ClientId" name="model.ClientId" asp-for="ClientId"> *@
     <input type="text" id="ClientTitle" name="model.ClientTitle" asp-for="ClientTitle" class="form-control" placeholder="Название">
     <input type="text" id="City" name="model.City" asp-for="City" class="form-control" placeholder="Город">
     <input type="date" id="FirstContact" name="model.FirstContact" asp-for="FirstContact" class="form-control" placeholder="первое обращение">
@@ -77,6 +77,6 @@
             </tr>
         </tbody>
     </table>
-    <button type="button"  onclick="addRekvizitRow(this)" class="btn btn-primary add-row-btn">Добавить строчку</button>
+  @*   <button type="button"  onclick="addRekvizitRow(this)" class="btn btn-primary add-row-btn">Добавить строчку</button> *@
     <button type="submit" id="addClient" class="btn btn-primary">Сохранить изменения</button>
 </form>

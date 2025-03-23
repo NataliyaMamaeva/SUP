@@ -1,4 +1,6 @@
-﻿namespace ERP.ViewModels
+﻿using ERP.Models;
+
+namespace ERP.ViewModels
 {
     public class ProjectCardViewModel
     {
@@ -14,8 +16,12 @@
         public decimal? AdvanceRate { get; set; }
         public decimal? EmployeePayment { get; set; }
         public string? Description { get; set; }
-        public string? Journal { get; set; }
+
+        public string? LayoutsRequired { get; set; }
+        public bool IsDocumentsComleted { get; set; }
+
         public List<ItemCardViewModel> Items { get; set; } = new();
+        public List<JournalNote> JournalNotes { get; set; } = new();
         public List<FileCardViewModel> Layouts { get; set; } = new();
         public List<FileCardViewModel> Documents { get; set; } = new();
         public List<FileCardViewModel> Gallery { get; set; } = new();
@@ -37,7 +43,6 @@
                    $"Advance Rate: {AdvanceRate?.ToString("P") ?? "N/A"}\n" +
                     $"Employee Payment: {EmployeePayment?.ToString("P") ?? "N/A"}\n" +
                    $"Description: {Description ?? "N/A"}\n" +
-                   $"Journal: {Journal ?? "N/A"}\n" +
                    $"Items:\n{string.Join("\n", Items)}\n" +
                    $"Layouts:\n{string.Join("\n", Layouts)}\n" +
                    $"Documents:\n{string.Join("\n", Documents)}\n" +

@@ -4,13 +4,14 @@
 @{
 }
 @model ERP.ViewModels.AddPhotosViewModel
-<form id="photoForm" action="/CurrentProjects/AddPhotos" method="post">
-    <input type="number" style="visibility: hidden; height: 0; margin: 0;" asp-for="projectId" id="addPhotoProjectId" value="" />
-
-    <input type="text" style="visibility: hidden; height: 0; margin: 0;" asp-for="fileType" id="addPhotoFileType" value="" />
+<form id="photoForm" action="/CurrentProjects/AddPhotos" method="post" enctype="multipart/form-data">
+    <input type="hidden"  asp-for="projectId" id="addPhotoProjectId" value="" />
+    <input type="hidden"  asp-for="noteId" id="addPhotoNoteId" value="" />
+    <input type="hidden" asp-for="fileType" id="addPhotoFileType" value="" />
 
     <select id="itemSelect" asp-for="itemPointer">    
     </select>
+
     <input asp-for="photo" multiple id="AddPhotosInput" accept="image/*" type="file">
-    <button type="submit">добавить фото</button>
+    <button type="button" onclick="AddPhotos()">добавить фото</button>
 </form>

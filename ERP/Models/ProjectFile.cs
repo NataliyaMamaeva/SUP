@@ -23,4 +23,10 @@ public partial class ProjectFile
     public int? ProjectId { get; set; }
 
     public virtual Project? Project { get; set; }
+
+    public int? JournalNoteId { get; set; }
+
+    public virtual JournalNote? JournalNote { get; set; }
+
+
 }

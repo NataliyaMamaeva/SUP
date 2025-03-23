@@ -1,8 +1,10 @@
-﻿
+﻿//const { data } = require("jquery");
+
 
 document.addEventListener("DOMContentLoaded", () => {   
     loadEmployeesWithProjects();
     loadProjectsQuery();
+    
 });
 function loadProjectsQuery() {
     fetch('/GetProjectsQuery')
@@ -47,6 +49,9 @@ function loadProjectsQuery() {
             console.error("Ошибка при загрузке данных:", error);
         });
 }
+
+let dataList = [];
+let currentType = "";
 async function loadEmployeesWithProjects() {
     try {
         const response = await fetch('/GetEmployeesWithProjects');
@@ -76,12 +81,14 @@ async function loadEmployeesWithProjects() {
             if (isBoss || currentUserId === employee.employeeId) {
                 const employeeCardButton = document.createElement("button");
                 employeeCardButton.textContent = "Карточка сотрудника";
+                employeeCardButton.className = "btn";
                 employeeCardButton.onclick = () => loadEmployeeCard(employee.employeeId);
                 employeeDiv.appendChild(employeeCardButton);
             }
         
             const planButton = document.createElement("button");
             planButton.textContent = "планирование задач";
+            planButton.className = "btn";
             planButton.onclick = () => taskPlanner(employee.employeeId); 
             employeeDiv.appendChild(planButton);
 
@@ -91,13 +98,14 @@ async function loadEmployeesWithProjects() {
             {
                 const salaryButton = document.createElement("button");
                 salaryButton.textContent = "ЗП архив | прогноз";
+                salaryButton.className = "btn";
                 salaryButton.onclick = () => loadSalary(employee.employeeId);
                 employeeDiv.appendChild(salaryButton);
             }
 
             // Контейнер для проектов сотрудника
             const projectList = document.createElement("div");
-            projectList.className = "master_list red"; // Класс можно менять в зависимости от статуса
+            projectList.className = "master_list"; // Класс можно менять в зависимости от статуса
             employee.projects.forEach(project => {
                 const projectDiv = document.createElement("div");
                 projectDiv.className = "project";
@@ -137,34 +145,48 @@ async function loadEmployeesWithProjects() {
             employeesContainer.appendChild(employeeDiv);
             employeesContainer.appendChild(projectList);
         });
+
+        if (isBoss) {
+            const employeesContainer = document.getElementById("employeesContainer");
+
+            const emplDiv = document.createElement("div");
+            emplDiv.className = "header";
+            const addEmplButton = document.createElement("button");
+            addEmplButton.textContent = "Добавить сотрудника";
+            /* addEmplButton.className = "btn";*/
+            addEmplButton.onclick = () => AddEmployee();
+            emplDiv.appendChild(addEmplButton);
+
+            const clientDiv = document.createElement("div");
+            clientDiv.className = "header";
+            const addClientButton = document.createElement("button");
+            addClientButton.textContent = "Добавить заказчика";
+            /* addClientButton.className = "btn";*/
+            addClientButton.onclick = () => AddClient();
+            clientDiv.appendChild(addClientButton);
+
+            employeesContainer.appendChild(emplDiv);
+            employeesContainer.appendChild(clientDiv);
+
+
+            const redactDiv = document.createElement("div");
+            redactDiv.className = "header";
+            const redactMaterials = document.createElement("button");
+            redactMaterials.textContent = "Редактировать материалы";          
+            redactMaterials.onclick = () => RedactType("Materials");
+            redactDiv.appendChild(redactMaterials);
+
+            const redactColors = document.createElement("button");
+            redactColors.textContent = "Редактировать цвета";
+            redactColors.onclick = () => RedactType("Colors");
+            redactDiv.appendChild(redactColors);
+
+            employeesContainer.appendChild(redactDiv);
+        }
     } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
     }
 }
-
-
-$('#addProjectButton').click(function () {
-    $('#addProject').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
-
-    $('.popup_before').click(function () {
-        $('#addProject').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-    });
-
-    $.ajax({
-        url: `/CurrentProjects/CreateProjectPartial`,
-        type: 'GET',      
-        success: async function (data) {
-            await $('#addProject').html(data);
-            getColors(document.getElementById('select-Colors'));
-            getMaterials(document.getElementById('select-Materials'));
-            getEmployees(document.getElementById('select-Employees'));
-            getClients(document.getElementById('select-Clients'));
-        }
-    });
-});
-
 ///-------------------------------------планнер---------------------------------------------//
 
 let EmployeeId = 0;
@@ -187,10 +209,10 @@ async function taskPlanner(id) {
     calendar.innerHTML = '';
     loadedMonths.clear();
 
-    $('#calendarContainer').css('visibility', 'visible');
+    $('#calendarContainerForeign').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
     $('.popup_before').click(function () {
-        $('#calendarContainer').css('visibility', 'hidden');
+        $('#calendarContainerForeign').css('visibility', 'hidden');
         $('.popup_before').css('visibility', 'hidden');
     });
     const response = await fetch(`/GetTasksByEmployeeId?id=${id}`);
@@ -458,219 +480,181 @@ taskModal.addEventListener("click", (e) => {
 });
 
 
-///---------------------------------------галерея---------------------------------------//
+///---------------------------------------полноэкранная галерея---------------------------------------//
 
 
+function openGallery(image) {
+    var gallery = image.closest('.gallery');
+    var images = gallery.querySelectorAll('img');
+    console.log(gallery);
+    console.log(images);
 
-let galleryImages = [];
-let currentImageIndex = 0;
-$('.sketches img').click(function () {
-    $('#gallery').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
+    // Фильтруем картинки, убирая те, у которых есть класс "plus"
+    var imagePaths = Array.from(images)
+        .filter(img => !img.classList.contains('plus'))
+        .map(img => img.src);
 
-    $('.popup_before').click(function () {
-        $('#gallery').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-    });
-    //$(this).className.
+    var imageData = Array.from(images)
+        .filter(img => !img.classList.contains('plus'))
+        .map(img => img.dataset.fileId);
 
-});
-document.addEventListener('DOMContentLoaded', () => {
-    const galleries = document.querySelectorAll('.gallery');
-    let currentImageIndex = 0;
-    let currentGallery = null;
 
-    // Создаём полноэкранную галерею
-    const fullscreenOverlay = document.createElement('div');
-    fullscreenOverlay.classList.add('fullscreen-overlay');
-    fullscreenOverlay.innerHTML = `
-        <span class="close-btn">&times;</span>
-        <span class="prev-btn">&lt;</span>
-        <span class="next-btn">&gt;</span>
-        <img src="" alt="">
-    `;
-    document.body.appendChild(fullscreenOverlay);
-
-    const fullscreenImage = fullscreenOverlay.querySelector('img');
-    const closeButton = fullscreenOverlay.querySelector('.close-btn');
-    const prevButton = fullscreenOverlay.querySelector('.prev-btn');
-    const nextButton = fullscreenOverlay.querySelector('.next-btn');
-
-    // Функция открытия изображения
-    function openFullscreen(gallery, index) {
-        currentGallery = gallery;
-        currentImageIndex = index;
-        const images = gallery.querySelectorAll('img');
-
-        console.log(images);
-
-        fullscreenImage.src = images[index].src;
-        fullscreenOverlay.classList.add('active');
-    }
-
-    // Функция закрытия галереи
-    function closeFullscreen() {
-        fullscreenOverlay.classList.remove('active');
-    }
-
-    // Функция переключения изображений
-    function changeImage(direction) {
-        if (!currentGallery) return;
-
-        const images = currentGallery.querySelectorAll('img');
-        currentImageIndex = (currentImageIndex + direction + images.length) % images.length;
-        fullscreenImage.src = images[currentImageIndex].src;
-    }
-
-    // Обработчики событий
-    galleries.forEach(gallery => {
-        gallery.addEventListener('click', (e) => {
-
-            //console.log("gallery click");
-
-            if (e.target.tagName === 'IMG') {
-
-                console.log("gallery click IMG");
-                //console.log(e.target);
-
-                const images = [...gallery.querySelectorAll('img')];
-                const index = images.indexOf(e.target);
-                openFullscreen(gallery, index);
-            }
-        });
+    var modal = document.createElement('div');
+    modal.classList.add('modal-gallery');
+    Object.assign(modal.style, {
+        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', zIndex: 1000
     });
 
-    closeButton.addEventListener('click', closeFullscreen);
-    prevButton.addEventListener('click', () => changeImage(-1));
-    nextButton.addEventListener('click', () => changeImage(1));
-    fullscreenOverlay.addEventListener('click', (e) => {
-        if (e.target === fullscreenOverlay) closeFullscreen();
+    var modalImage = document.createElement('img');
+    modalImage.src = image.src;
+    Object.assign(modalImage.style, {
+        maxWidth: '90%', maxHeight: '90%', objectFit: 'contain'
     });
 
-    document.addEventListener('keydown', (e) => {
-        if (!fullscreenOverlay.classList.contains('active')) return;
-
-        if (e.key === 'Escape') closeFullscreen();
-        if (e.key === 'ArrowLeft') changeImage(-1);
-        if (e.key === 'ArrowRight') changeImage(1);
-    });
-
-    function openGallery(image) {
-        // Находим родительский контейнер (например, .gallery)
-        var gallery = image.closest('.gallery');
-
-        // Получаем все изображения внутри родительского контейнера
-        var images = gallery.querySelectorAll('img');
-
-        //// Массив с путями к полноразмерным изображениям (например, заменим 'small' на 'large' в путях)
-        //var imagePaths = Array.from(images).map(function (img) {
-        //    return img.src.replace('small', 'large'); // Предполагаем, что полноразмерные изображения имеют другой суффикс
-        //});
-
-        var imagePaths = Array.from(images).map(function (img) {
-            return img.src; // Предполагаем, что полноразмерные изображения имеют другой суффикс
+    // SVG-кнопки (стрелки)
+    function createSvgButton(direction) {
+        var button = document.createElement('button');
+        button.innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+            <path d="${direction === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+        Object.assign(button.style, {
+            position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+            background: 'transparent', border: 'none', cursor: 'pointer'
         });
-
-        // Создаём модальное окно
-        var modal = document.createElement('div');
-        modal.classList.add('modal');
-        modal.style.position = 'fixed';
-        modal.style.top = 0;
-        modal.style.left = 0;
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.zIndex = 1000;
-
-        // Добавляем кнопки для навигации по изображениям
-        var prevButton = document.createElement('button');
-        prevButton.textContent = '◀';
-        prevButton.style.position = 'absolute';
-        prevButton.style.left = '20px';
-        prevButton.style.fontSize = '2em';
-        prevButton.style.color = 'white';
-        prevButton.style.backgroundColor = 'transparent';
-        prevButton.style.border = 'none';
-        prevButton.style.cursor = 'pointer';
-
-        var nextButton = document.createElement('button');
-        nextButton.textContent = '▶';
-        nextButton.style.position = 'absolute';
-        nextButton.style.right = '20px';
-        nextButton.style.fontSize = '2em';
-        nextButton.style.color = 'white';
-        nextButton.style.backgroundColor = 'transparent';
-        nextButton.style.border = 'none';
-        nextButton.style.cursor = 'pointer';
-
-        // Создаем элемент для отображения изображений
-        var modalImage = document.createElement('img');
-        modalImage.src = image.src.replace('small', 'large');
-        modalImage.style.maxWidth = '90%';
-        modalImage.style.maxHeight = '90%';
-        modalImage.style.objectFit = 'contain';
-
-        // Добавляем изображение в модальное окно
-        modal.appendChild(modalImage);
-        modal.appendChild(prevButton);
-        modal.appendChild(nextButton);
-
-        // Открываем модальное окно
-        document.body.appendChild(modal);
-
-        // Функции для перехода к предыдущему и следующему изображению
-        var currentIndex = imagePaths.indexOf(modalImage.src);
-
-        function showImage(index) {
-            if (index < 0) {
-                index = imagePaths.length - 1; // Если индекс меньше 0, показать последнее изображение
-            } else if (index >= imagePaths.length) {
-                index = 0; // Если индекс больше длины массива, показать первое изображение
-            }
-            modalImage.src = imagePaths[index];
-            currentIndex = index;
-        }
-
-        prevButton.addEventListener('click', function () {
-            showImage(currentIndex - 1);
-        });
-
-        nextButton.addEventListener('click', function () {
-            showImage(currentIndex + 1);
-        });
-
-        // Закрытие модального окна при клике на его фон
-        modal.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                document.body.removeChild(modal);
-            }
-        });
-
-        // Закрытие модального окна при нажатии на клавишу Escape
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                document.body.removeChild(modal);
-            }
-        });
+        return button;
     }
 
-});
+    var prevButton = createSvgButton('left');
+    prevButton.style.left = '20px';
+    prevButton.style.width = 'min-content';
+    var nextButton = createSvgButton('right');
+    nextButton.style.right = '20px';
+    nextButton.style.width = 'min-content';
 
+    var closeButton = document.createElement('button');
+    closeButton.innerHTML = `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+    Object.assign(closeButton.style, {
+        position: 'absolute', top: '15px', right: '15px', background: 'transparent',
+        border: 'none', cursor: 'pointer'
+    });
 
-async function plusClick(fileType, id) {
+    var deleteButton = document.createElement('button');
+    deleteButton.innerHTML = `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+    Object.assign(deleteButton.style, {
+        position: 'absolute', bottom: '20px', background: 'transparent',
+        border: 'none', cursor: 'pointer'
+    });
+
+    modal.appendChild(modalImage);
+    modal.appendChild(prevButton);
+    modal.appendChild(nextButton);
+    modal.appendChild(closeButton);
+
+    var currentIndex = imagePaths.indexOf(modalImage.src);
+    var originalImage = Array.from(gallery.querySelectorAll('img'))
+        .find(img => img.src === modalImage.src);
+
+    if (!originalImage.classList.contains('itemImage')) {
+        modal.appendChild(deleteButton);
+    }
+    document.body.appendChild(modal);
+
+    var currentIndex = imagePaths.indexOf(modalImage.src);
+
+    function showImage(index) {
+        if (index < 0) index = imagePaths.length - 1;
+        else if (index >= imagePaths.length) index = 0;
+        modalImage.src = imagePaths[index];
+        currentIndex = index;
+    }
+
+    prevButton.addEventListener('click', () => showImage(currentIndex - 1));
+    nextButton.addEventListener('click', () => showImage(currentIndex + 1));
+
+    closeButton.addEventListener('click', () => document.body.removeChild(modal));
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) document.body.removeChild(modal);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') document.body.removeChild(modal);
+    });
+
+    deleteButton.addEventListener('click', function () {
+        var fileId = imageData[currentIndex];
+        console.log(imageData);
+        console.log(currentIndex);
+        console.log(fileId);
+
+        fetch(`/CurrentProjects/DeletePhoto?id=${fileId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('потречено');
+
+                    imagePaths.splice(currentIndex, 1);
+                    imageData.splice(currentIndex, 1);
+
+                    if (imagePaths.length === 0) {
+                        document.body.removeChild(modal);
+                        return;
+                    }
+                    document.body.removeChild(modal);
+
+                    var allImages = Array.from(gallery.querySelectorAll('img'));
+                    var targetImage = allImages.find(img => img.src === modalImage.src);
+
+                    if (targetImage) {
+                        targetImage.remove();
+
+                        currentIndex = Math.max(0, currentIndex - 1);
+                        showImage(currentIndex);
+                    } else {
+                        alert('Ошибка удаления');
+                    }
+                }
+            });
+    });
+}
+async function plusClick(fileType, id, noteId) {
 
     // event.stopPropagation();
 
-    $('#addImagePopUp').css('visibility', 'visible');
+    console.log(fileType);
+    console.log(id);
+    console.log(noteId);
+
+    await $.get("/CurrentProjects/AddPhotosPartial", function (data) {
+        $("#addImageInner").html(data); // Вставляем форму в DOM
+    });
+
+    //$('#addPhotoProjectId').val(id);
+    //$('#addPhotoNoteId').val(noteId);
+    //$('#addPhotoFileType').val(fileType);
+
+
+    $('#addImage').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
     $('.popup_before').css('z-index', '3');
+   // $('#addImage').find('#addPhotoFileType').val(fileType);  
 
-    $('#addImagePopUp').find('#addPhotoProjectId').val(id);
-    $('#addImagePopUp').find('#addPhotoFileType').val(fileType);
-    let select = $('#addImagePopUp').find('#itemSelect');
+    $('#addImage').find('#addPhotoNoteId').val(noteId);
+    $('#addImage').find('#addPhotoProjectId').val(id);
+    $('#addImage').find('#addPhotoFileType').val(fileType);
+
+
+
+
+
+    let select = $('#addImage').find('#itemSelect');
     select.innerHTML = '';
     let optionFirst = document.createElement("option");
     optionFirst.text = "общие фото";
@@ -698,14 +682,171 @@ async function plusClick(fileType, id) {
         console.error("Ошибка при загрузке данных:", error);
     }
 
-    $('.close-btn').click(function () {
-        $('#addImagePopUp').css('visibility', 'hidden');
+    $('.popup_before').click(function () {
+        $('#addImage').css('visibility', 'hidden');
+        $('#popup_before').css('visibility', 'hidden');
         $('.popup_before').css('z-index', '1');
     });
-
 }
 
+
 //-----------------------------------отправка формы с фото проекта, журнала---------------------------//
+///--------------------------------------заметки журнала---------------------------------------//
+
+    function toggleJournalNotes(button) {
+        var journalNotes = document.getElementById("journal-notes");
+    var isVisible = journalNotes.style.display !== "none";
+
+    journalNotes.style.display = isVisible ? "none" : "block";
+    button.innerHTML = isVisible
+    ? `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <path d="M6 15l6-6 6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>`
+    : `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <path d="M6 9l6 6 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>`;
+    }
+    async function addJournalNote() {
+  //  var journalNotesContainer = document.getElementById("journal-notes");
+        //var addButton = document.querySelector(".add-note-btn");
+
+        var addButton = event.currentTarget;
+        console.log(addButton);
+
+        var journalNotesContainer = addButton.closest(".journal-notes");
+        console.log(journalNotesContainer);
+
+
+    var journalContainer = document.createElement("div");
+    journalContainer.classList.add("journal-container");
+
+    var journalContainer = document.createElement("div");
+        journalContainer.classList.add("journal-container");
+
+    var hiddenInput = document.createElement("input");
+        hiddenInput.setAttribute("type", "hidden");
+
+    hiddenInput.setAttribute("id", "noteId");
+    hiddenInput.setAttribute("value", "0");
+    journalContainer.appendChild(hiddenInput);
+
+    // Верхняя строка с темой и кнопкой удаления
+    var journalHeader = document.createElement("div");
+    journalHeader.classList.add("journal-header");
+
+    var label = document.createElement("label");
+    label.textContent = "Тема:";
+
+    var select = document.createElement("select");
+        select.classList.add("topic-select");
+
+
+    try
+    {
+        let response = await fetch('/CurrentProjects/GetJournalTopics'); // Запрос тем
+        let topics = await response.json();
+
+        console.log(topics);
+
+        topics.forEach(topic => {
+            var option = document.createElement("option");
+        option.value = topic.journalTopicId;
+        option.textContent = topic.journalTopicName;
+        select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Ошибка загрузки тем:", error);
+    }
+
+    var deleteButton = document.createElement("button");
+    deleteButton.classList.add("delete-note-btn");
+    deleteButton.setAttribute("title", "Удалить");
+    deleteButton.setAttribute("onclick", "deleteJournalNote(this)");
+
+    var deleteIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    deleteIcon.setAttribute("width", "24");
+    deleteIcon.setAttribute("height", "24");
+    deleteIcon.setAttribute("viewBox", "0 0 24 24");
+
+    var deletePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    deletePath.setAttribute("d", "M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14");
+    deletePath.setAttribute("stroke", "white");
+    deletePath.setAttribute("stroke-width", "2");
+    deletePath.setAttribute("stroke-linecap", "round");
+    deletePath.setAttribute("stroke-linejoin", "round");
+
+    deleteIcon.appendChild(deletePath);
+    deleteButton.appendChild(deleteIcon);
+
+    journalHeader.appendChild(label);
+    journalHeader.appendChild(select);
+    journalHeader.appendChild(deleteButton);
+
+    // Контейнер для текста и фото
+    var journalContent = document.createElement("div");
+    journalContent.classList.add("journal-content");
+
+    var textBlock = document.createElement("div");
+    textBlock.classList.add("text_block");
+
+    var textarea = document.createElement("textarea");
+        textarea.setAttribute("oninput", "textareaResize(this)");
+        textarea.setAttribute("onblur", "sendCardText('PutProjectNote', null)");
+    textBlock.appendChild(textarea);
+
+    var gallery = document.createElement("div");
+    gallery.classList.add("journal_images", "gallery");
+
+    var plusImg = document.createElement("img");
+    plusImg.classList.add("plus");
+    plusImg.setAttribute("src", "/plus.jpg"); // Исправленный путь
+        plusImg.setAttribute("alt", "Добавить фото");
+
+
+  
+    var projectIdElement = document.querySelector('#projectId');
+    var projectId = projectIdElement ? projectIdElement.value : null;
+
+    plusImg.onclick = () => plusClick('журналФото', projectId, hiddenInput.value);
+
+    gallery.appendChild(plusImg);
+
+    journalContent.appendChild(textBlock);
+    journalContent.appendChild(gallery);
+
+    journalContainer.appendChild(journalHeader);
+    journalContainer.appendChild(journalContent);
+
+
+    journalNotesContainer.insertBefore(journalContainer, addButton);
+    }
+function deleteJournalNote(button) {
+    var note = button.closest(".journal-container");
+    let hiddenInput = note.querySelector('input[type="hidden"]');
+    var noteId = hiddenInput.value; 
+    if (!confirm("Удалить эту заметку?")) return;
+
+    note.remove();
+    console.log(`/CurrentProjects/DeleteJournalNote?id=${noteId}`);
+    // Если у заметки есть ID, отправляем запрос на сервер
+    if (noteId) {
+        fetch(`/CurrentProjects/DeleteJournalNote?id=${noteId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Заметка удалена с сервера");
+                } else {
+                    alert("Ошибка удаления заметки");
+                }
+            })
+            .catch(error => console.error("Ошибка:", error));
+        }
+    }
+
+
 async function setProjectColor(input, id) {
     const color = input.value;
     fetch(`/SetProjectColor?id=${id}`, {
@@ -729,31 +870,6 @@ async function setProjectColor(input, id) {
         });
 }
 
-function openProjectCard(id) {
-    console.log("Открытие карточки проекта с ID:", id);
-    $('#projectData').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
-
-    $.ajax({
-        url: `/LoadProjectCard`,
-        type: 'GET',
-        data: { id: id },
-        success: function (data) {
-            $('#projectData').html(data);
-        },
-        error: function () {
-            alert("Ошибка при загрузке данных проекта.");
-        }
-    });
-
- 
-
-    $('.popup_before').click(function () {
-        $('#projectData').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-    });
-}
-
 //document.addEventListener("DOMContentLoaded", () => {
 //    const textarea = document.getElementsByTagName("textarea");
 //    textarea.forEach( t => textareaResize(t)); // Подстроить высоту при загрузке страницы
@@ -764,13 +880,47 @@ function textareaResize(textarea) {
     /*textarea.style.height = "auto"; */
     textarea.style.height = textarea.scrollHeight + "px";
 }
-function sendCardText(action, projectId) {
+function sendCardText(action, noteId) {
     const textarea = event.target;
     const description = textarea.value;
-    console.log("sendCardText: " + description);
-    console.log(JSON.stringify({ description }));
+    let container = textarea.closest(".journal-container"); // Ищем родительский .journal-container
+    let topicSelect = container.querySelector(".topic-select"); // Находим первый select в этом контейнере
 
-    fetch(`/${action}?id=${projectId}`, {
+
+    console.log(container);
+    console.log(topicSelect);
+
+    let selectedTopicId = topicSelect ? topicSelect.value : null;
+
+    //var projectIdElement = document.querySelector('#projectId');
+    //let projectInput = container.querySelector(".note-projectId"); 
+    //let projectInputData = projectInput.dataset.projectId;
+    //console.log(projectInputData);
+
+    //var projectId = projectIdElement ? projectIdElement.value : (projectInputData ? projectInputData : null);
+
+
+    var projectIdElement = document.querySelector('#projectId');
+    var projectId;
+
+    if (projectIdElement) {
+        projectId = projectIdElement.value;
+    } else {
+        let projectInput = container.querySelector(".note-projectId");
+        let projectInputData = projectInput ? projectInput.dataset.projectId : null;
+        projectId = projectInputData ? projectInputData : null;
+    }
+
+    console.log(projectId);
+
+
+
+    console.log("sendCardText: " + description);
+  //  console.log(JSON.stringify({ description }));
+
+    console.log(`/CurrentProjects/${action}?id=${noteId}&topicId=${selectedTopicId}&projectId=${projectId}`);
+
+    fetch(`/CurrentProjects/${action}?id=${noteId}&topicId=${selectedTopicId}&projectId=${projectId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
@@ -781,10 +931,19 @@ function sendCardText(action, projectId) {
             if (!response.ok) {
                 throw new Error("Ошибка при отправке данных на сервер");
             }
-            return response.json(); // Если требуется ответ от сервера
+            return response.json();
         })
         .then(data => {
             console.log("Успешно отправлено:", data);
+
+            // Если заметка новая и у неё не было ID, обновляем скрытый input
+            if (!noteId && data.noteId) {
+                var note = textarea.closest(".journal-container");
+                let hiddenInput = note.querySelector('input[type="hidden"]');
+
+                hiddenInput.value = data.noteId;
+                console.log("Присвоен новый ID заметке:", data.noteId);
+            }
         })
         .catch(error => {
             console.error("Ошибка:", error);
@@ -792,46 +951,9 @@ function sendCardText(action, projectId) {
 }
 
 
-document.getElementById("photoForm").addEventListener("submit", async function (event) {
-    event.preventDefault(); 
-
-    const projectId = document.getElementById("addPhotoProjectId").value;
-    const fileType = document.getElementById("addPhotoFileType").value;
-    const itemPointer = document.getElementById("itemSelect").value;
-    const photos = document.querySelector('input[type="file"]').files;
-
-    const formData= new FormData();
-    const fileInput = document.getElementById('AddPhotosInput');
-    formData.append(`projectId`, projectId);
-    formData.append(`fileType`, fileType);
-    formData.append(`itemPointer`, itemPointer);
-   
-    const files = fileInput.files;
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        formData.append(`photos[${i}].photo`, file);
-        formData.append(`photos[${i}].projectId`, projectId);
-        formData.append(`photos[${i}].fileType`, fileType);
-        formData.append(`photos[${i}].itemPointer`, itemPointer);
-    }
-    formData.forEach((value, key) => {
-        console.log(key, value);
-    });
-
-    const itemsResponse = await fetch('/CurrentProjects/AddPhotos', {
-        method: 'POST',
-        body: formData
-    });
-    if (itemsResponse.ok) {
-        console.log('загружены photos.');
-        $('#addImagePopUp').css('visibility', 'hidden');
-        $('.popup_before').css('z-index', '1');
-    }
-});
-
 
     //const textarea = event.target;
-    
+
     //console.log("sendCardText: " + description);
     //console.log(JSON.stringify({ description }));
 
@@ -856,20 +978,149 @@ document.getElementById("photoForm").addEventListener("submit", async function (
     //    });
 
 
-function AddEmployee() {
-    // Показываем всплывающее окно
-    $('#addEmployeePopUp').css('visibility', 'visible');
-    $('.popup_before').css('visibility', 'visible');
-    $('.popup_before').css('z-index', '3');
+//document.getElementById("photoForm").addEventListener("submit", async function (event) {
+//    event.preventDefault();
 
-    // Закрытие всплывающего окна при клике на .popup_before
-    $('.close-btn').click(function () {
-        $('#addEmployeePopUp').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-        $('.popup_before').css('z-index', '1');
-    });
+//    const projectId = document.getElementById("addPhotoProjectId").value;
+//    const noteId = document.getElementById("addPhotoNoteId").value;
+//    const fileType = document.getElementById("addPhotoFileType").value;
+//    const itemPointer = document.getElementById("itemSelect").value;
+//    const photos = document.querySelector('input[type="file"]').files;
+
+//    const formData = new FormData();
+//    const fileInput = document.getElementById('AddPhotosInput');
+//    formData.append(`projectId`, projectId);
+//    formData.append(`noteId`, noteId);
+//    formData.append(`fileType`, fileType);
+//    formData.append(`itemPointer`, itemPointer);
+
+//    const files = fileInput.files;
+//    for (let i = 0; i < files.length; i++) {
+//        const file = files[i];
+//        formData.append(`photos[${i}].photo`, file);
+//        formData.append(`photos[${i}].projectId`, projectId);
+//        formData.append(`photos[${i}].noteId`, noteId);
+//        formData.append(`photos[${i}].fileType`, fileType);
+//        formData.append(`photos[${i}].itemPointer`, itemPointer);
+//    }
+
+
+//    formData.forEach((value, key) => {
+//        console.log(key, value);
+//    });
+
+//  //  await delay(15000);
+
+//    const itemsResponse = await fetch('/CurrentProjects/AddPhotos', {
+//        method: 'POST',
+//        body: formData
+//    });
+//    if (itemsResponse.ok) {
+//        alert("загружено");
+//        let gallery;
+//        if (fileType == "журналФото") {
+//            gallery = document.querySelector(`.journal-container input[value="${noteId}"]`)?.closest('.journal-container')?.querySelector('.gallery');
+//        } else {
+//            gallery = document.querySelector('.gallery-photo');
+//        }
+
+//        if (gallery) {
+//            for (let i = 0; i < files.length; i++) {
+//                const file = files[i];
+
+//                // Создаём объект URL для превью (без запроса к серверу)
+//                const imgURL = URL.createObjectURL(file);
+
+//                const img = document.createElement("img");
+//                img.src = imgURL;
+//                img.alt = file.name;
+//                img.dataset.fileName = file.name;
+//                img.onclick = function () { openGallery(img); };
+
+//                gallery.appendChild(img);
+//            }
+//        }
+
+//        $('#addImage').css('visibility', 'hidden');
+//        $('.popup_before').css('z-index', '1');
+//    }
+//});
+
+
+
+async function AddPhotos() {
+
+        const projectId = document.getElementById("addPhotoProjectId").value;
+        const noteId = document.getElementById("addPhotoNoteId").value;
+        const fileType = document.getElementById("addPhotoFileType").value;
+        const itemPointer = document.getElementById("itemSelect").value;
+        const photos = document.querySelector('input[type="file"]').files;
+
+        const formData = new FormData();
+        const fileInput = document.getElementById('AddPhotosInput');
+        formData.append(`projectId`, projectId);
+        formData.append(`noteId`, noteId);
+        formData.append(`fileType`, fileType);
+        formData.append(`itemPointer`, itemPointer);
+
+        const files = fileInput.files;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            formData.append(`photos[${i}].photo`, file);
+            formData.append(`photos[${i}].projectId`, projectId);
+            formData.append(`photos[${i}].noteId`, noteId);
+            formData.append(`photos[${i}].fileType`, fileType);
+            formData.append(`photos[${i}].itemPointer`, itemPointer);
+        }
+
+
+        formData.forEach((value, key) => {
+            console.log(key, value);
+        });
+
+        //  await delay(15000); 
+
+        const itemsResponse = await fetch('/CurrentProjects/AddPhotos', {
+            method: 'POST',
+            body: formData
+        });
+        if (itemsResponse.ok) {
+            alert("загружено");
+            let gallery;
+            if (fileType == "журналФото") {
+                gallery = document.querySelector(`.journal-container input[value="${noteId}"]`)?.closest('.journal-container')?.querySelector('.gallery');
+            } else {
+                gallery = document.querySelector('.gallery-photo');
+            }
+
+            if (gallery) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+
+                    // Создаём объект URL для превью (без запроса к серверу)
+                    const imgURL = URL.createObjectURL(file);
+
+                    const img = document.createElement("img");
+                    img.src = imgURL;
+                    img.alt = file.name;
+                    img.dataset.fileName = file.name;
+                    img.onclick = function () { openGallery(img); };
+
+                    gallery.appendChild(img);
+                }
+            }
+
+            $('#addImage').css('visibility', 'hidden');
+            $('.popup_before').css('visibility', 'hidden');
+            $('.popup_before').css('z-index', '1');
+        }
+
 }
+
 //-------------------------------------------- Client  -----------------------------------------------||
+
+
+
 function AddClient() {
     $('#addClient').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
@@ -878,13 +1129,16 @@ function AddClient() {
         $('#addClient').css('visibility', 'hidden');
         $('.popup_before').css('visibility', 'hidden');
         $('.popup_before').css('z-index', '1');
+      
     });
 
-
+    $('.popup_before').click(function () {
+        $('#addClient').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
 
 }
-
- function addContactRow (button) {
+function addContactRow (button) {
     // Обработчик для добавления строки контакта
    // const addContactRowButton = document.getElementById('addContactRow');
     const contactsTableBody = document.getElementById('addContactsTable');
@@ -915,7 +1169,6 @@ function AddClient() {
             });
         });
  }
-
 function addAddressRow (button) {
     const addressTableBody = document.getElementById('addAddressTable');
    
@@ -942,7 +1195,6 @@ function addAddressRow (button) {
             });
         });
 }
-
 function addRekvizitRow(button) {
     const rekvizitTableBody = document.getElementById('rekvizitTable');
 
@@ -1042,72 +1294,24 @@ $('#addClientForm').submit(async function (e) {
         throw new Error('Ошибка при загрузке файлов проекта.');
     }
 });
-
-
-
-//$(document).on('submit', '#editClientForm', async function (e) {
-//    e.preventDefault();
-//    const formData = new FormData(this);
-//    formData.forEach((value, key) => {
-//        console.log(key, value);
-//    });
-
-//    try {
-//        const response = await fetch('/CurrentProjects/EditClient', {
-//            method: 'POST',
-//            body: formData
-//        });
-
-//        if (response.ok) {
-//            const message = await response.json();
-//            alert(message);
-//            console.log('Данные клиента успешно обновлены.');
-//        } else {
-//            const errorText = await response.text();
-//            console.error('Ошибка при загрузке данных клиента:', errorText);
-//        }
-//    } catch (error) {
-//        console.error('Ошибка при отправке запроса:', error);
-//    }
-
-//    const formDataFiles = new FormData();
-//    const clientTitle = $('#ClientTitle').val();
-
-//    $('#rekvizitTable input[type="file"]').each(function (index, input) {
-//        const files = input.files;
-//        for (let i = 0; i < files.length; i++) {
-//            formDataFiles.append(`rekvizits[${index}].FilePath`, files[i]);
-//            formDataFiles.append(`rekvizits[${index}].ClientTitle`, clientTitle);
-//        }
-//    });
-
-//    console.log("rekvizit");
-//    formDataFiles.forEach((value, key) => {
-//        console.log(key, value);
-//    });
-
-//    const filesResponse = await fetch('/CurrentProjects/AddRervizit', {
-//        method: 'POST',
-//        body: formDataFiles
-//    });
-
-//    if (filesResponse.ok) {
-//        console.log('Файлы загружены.');
-//        $('#editClient').css('visibility', 'hidden');
-//        $('.popup_before').css('visibility', 'hidden');
-//    } else {
-//        console.error('Ошибка при загрузке файлов проекта.');
-//    }
-//});
-
-
 async function editClientDivOpen(id) {
-    let div = $('#editClient');
+    let editClient = $('#editClient');
     $('#editClient').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
-    $('.popup_before').css('z-index', '3');
-    // Загрузка _CreateClientPartial с передачей client
+   // $('.popup_before').css('z-index', '3');
+
+    //editClient.innerHTML = ` <svg class="close-btn" onclick="closeDiv('editClient')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+    //     viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+    //     stroke-linejoin="round">
+    //    <line x1="18" y1="6" x2="6" y2="18"></line>
+    //    <line x1="6" y1="6" x2="18" y2="18"></line>
+    //</svg>
+    //<div id="editClientInner" class="inner-container"></div>`;
+
+    let div = $('#editClientInner');
+   
     await $.get('/CurrentProjects/EditClientPartial', { clientId: id }, function (data) {
+        //console.log(data);
         div.html(data); // Вставляем HTML из представления в div
     });
     $('#editClientForm').submit(async function (e) {
@@ -1185,11 +1389,11 @@ async function editClientDivOpen(id) {
             throw new Error('Ошибка при загрузке файлов проекта.');
         }
     });
-    $('.close-btn').click(function () {
-        $('#editClient').css('visibility', 'hidden');
-        $('.popup_before').css('visibility', 'hidden');
-        $('.popup_before').css('z-index', '1');
-    });
+    //$('.close-btn').click(function () {
+    //    $('#editClient').css('visibility', 'hidden');
+    //    $('.popup_before').css('visibility', 'hidden');
+    //    $('.popup_before').css('z-index', '1');
+    //});
     $('.popup_before').click(function () {
         $('#editClient').css('visibility', 'hidden');
         $('.popup_before').css('visibility', 'hidden');
@@ -1251,7 +1455,6 @@ function deleteRekvizit(id, but) {
         });
     }
 }
-
 function deleteClient(id) {
     if (confirm("Точно удалить заказчика?")) {
         console.log("Удалить заказчика : " + id);
@@ -1261,7 +1464,7 @@ function deleteClient(id) {
             data: { id: id },
             success: function () {
                 alert('Потрачено');       
-                // location.reload();
+                location.reload();
             },
             error: function () {
                 alert('Ошибка');
@@ -1273,8 +1476,23 @@ function deleteClient(id) {
 //-------------------------------------------- Employee -----------------------------------------------||
 
 
+function AddEmployee() {
+    $('#addEmployee').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+    $('.popup_before').css('z-index', '3');
+
+    $.get("/CurrentProjects/CreateEmployeePartial", function (data) {
+        $("#addEmployeeInner").html(data);
+    });
+   
+    $('.popup_before').click(function () {
+        $('#addEmployee').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+
+}
 async function loadEmployeeCard(id) {
-    console.log("Открытие карточки сотрудника ID:", id);
+    //console.log("Открытие карточки сотрудника ID:", id);
 
     $('#employeeData').css('visibility', 'visible');
     $('.popup_before').css('visibility', 'visible');
@@ -1284,8 +1502,7 @@ async function loadEmployeeCard(id) {
         type: 'GET',
         data: { id: id },
         success: async function (data) {
-          
-            await $('#employeeData').html(data);
+            await $('#employeeDataInner').html(data);
         }
     });
 
@@ -1295,52 +1512,10 @@ async function loadEmployeeCard(id) {
     });
 }
 
-//document.querySelector('form').addEventListener('submit', async (event) => {
-//    event.preventDefault(); // Остановить стандартное поведение формы
-
-//    const form = event.target;
-//    const formData = new FormData(form);
-
-//    try {
-//        const response = await fetch(form.action, {
-//            method: form.method,
-//            body: formData
-//        });
-
-//        if (response.ok) {
-//            alert("Сотрудник и пользователь успешно добавлены.");
-//            form.reset(); // Очистка формы
-//        } else if (response.status === 409) {
-//            const error = await response.json();
-//            alert(error.Message); // Показываем сообщение о конфликте
-//        } else {
-//            const error = await response.json();
-//            alert("Ошибка: " + error.Message); // Другие ошибки
-//        }
-//    } catch (error) {
-//        alert("Произошла ошибка при отправке данных.");
-//        console.error(error);
-//    }
-//});
-
-
-//document.querySelector('#AddEmployeeForm').addEventListener('submit', function (event) {
-//        event.preventDefault();  // Отменяем стандартную отправку формы, чтобы выводить данные в консоль
-
-//        const formData = new FormData(this);
-//        const formEntries = {};
-
-//        // Преобразуем FormData в обычный объект для более удобного вывода
-//        formData.forEach((value, key) => {
-//            formEntries[key] = value;
-//        });
-
-//        console.log('Данные формы:', formEntries);
-
-//        // После логирования данных, можно отправить форму, если нужно
-//         this.submit();
-//    });
-
+function onEmployeeAdded(response) {
+    alert(response.message); // Показываем alert с текстом от сервера
+    $("#employeeForm")[0].reset(); // Очищаем форму после успешного добавления
+}
 
 async function fireEmployee(id) {
     if (confirm("Точно уволить?")) {
@@ -1362,137 +1537,6 @@ async function fireEmployee(id) {
 }
 
 //--------------------------------------------методы странички CreateProject-----------------------------------------------||
-
-
-
-//document.getElementById('addItem').addEventListener('click', function () {
-//    const tableBody = document.querySelector('#addItemTable');
-//    const rowCount = tableBody.querySelectorAll('tr').length;
-
-//    // Создаём новую строку
-//    let tr = document.createElement('tr');
-
-//    // Столбец: Тип элемента
-//    let td1 = document.createElement('td');
-//    let itemTypeSelect = document.createElement('select');
-//    itemTypeSelect.name = `items[${rowCount}].itemType`;
-//    itemTypeSelect.classList.add('form-select');
-//    itemTypeSelect.innerHTML = `
-//        <option selected value="Медаль">Медаль</option>
-//        <option value="Статуэтка">Статуэтка</option>
-//        <option value="Брелок">Брелок</option>`;
-//    td1.appendChild(itemTypeSelect);
-//    tr.appendChild(td1);
-
-//    let tdName = document.createElement('td');
-//    let itemNameInput = document.createElement('input');
-//    itemNameInput.type = 'text';
-//    itemNameInput.name = `items[${rowCount}].itemName`;
-//    itemNameInput.classList.add('form-control');
-//    tdName.appendChild(itemNameInput);
-//    tr.appendChild(tdName);
-
-//    // Столбец: Поле загрузки файла
-//    let td2 = document.createElement('td');
-//    let fileInput = document.createElement('input');
-//    fileInput.type = 'file';
-//    fileInput.name = `items[${rowCount}].sketch`;
-//    fileInput.classList.add('form-control');
-//    td2.appendChild(fileInput);
-//    tr.appendChild(td2);
-
-//    // Столбец: Превью изображения
-//    let td3 = document.createElement('td');
-//    let img = document.createElement('img');
-//    img.src = '';
-//    img.style.width = '100px';
-//    img.style.height = 'auto';
-//    td3.appendChild(img);
-//    tr.appendChild(td3);
-
-//    // Обновляем превью изображения при выборе файла
-//    fileInput.addEventListener('change', function () {
-//        const file = fileInput.files[0];
-//        if (file) {
-//            const reader = new FileReader();
-//            reader.onload = function (e) {
-//                img.src = e.target.result;
-//            };
-//            reader.readAsDataURL(file);
-//        }
-//    });
-
-//    // Столбец: Количество
-//    let td4 = document.createElement('td');
-//    let itemCountInput = document.createElement('input');
-//    itemCountInput.type = 'number';
-//    itemCountInput.name = `items[${rowCount}].itemCount`;
-//    itemCountInput.classList.add('form-control');
-//    td4.appendChild(itemCountInput);
-//    tr.appendChild(td4);
-
-//    // Столбец: Дата завершения
-//    let td5 = document.createElement('td');
-//    let itemDeadlineInput = document.createElement('input');
-//    itemDeadlineInput.type = 'date';
-//    itemDeadlineInput.name = `items[${rowCount}].itemDeadline`;
-//    itemDeadlineInput.classList.add('form-control');
-//    td5.appendChild(itemDeadlineInput);
-//    tr.appendChild(td5);
-
-//    // Столбец: Цена
-//    let td6 = document.createElement('td');
-//    let itemPriceInput = document.createElement('input');
-//    itemPriceInput.type = 'number';
-//    itemPriceInput.name = `items[${rowCount}].itemPrice`;
-//    itemPriceInput.classList.add('form-control');
-//    td6.appendChild(itemPriceInput);
-//    tr.appendChild(td6);
-
-//    // Столбец: Материалы
-//    let td7 = document.createElement('td');
-//    let materialsSelect = document.createElement('select');
-//    materialsSelect.name = `items[${rowCount}].materials`;
-//    materialsSelect.id = 'itemMaterials';
-//    materialsSelect.multiple = true;
-//    getMaterials(materialsSelect);
-//    td7.appendChild(materialsSelect);
-//    tr.appendChild(td7);
-
-//    // Столбец: Цвета
-//    let td8 = document.createElement('td');
-//    let colorsSelect = document.createElement('select');
-//    colorsSelect.name = `items[${rowCount}].colors`;
-//    colorsSelect.id = 'itemColors';
-//    colorsSelect.multiple = true;
-//    getColors(colorsSelect);
-//    td8.appendChild(colorsSelect);
-//    tr.appendChild(td8);
-
-//    // Столбец: Описание
-//    let td9 = document.createElement('td');
-//    let itemDescriptionInput = document.createElement('input');
-//    itemDescriptionInput.type = 'text';
-//    itemDescriptionInput.name = `items[${rowCount}].itemDescription`;
-//    itemDescriptionInput.classList.add('form-control');
-//    td9.appendChild(itemDescriptionInput);
-//    tr.appendChild(td9);
-
-//    let td10 = document.createElement('td');
-//    let deleteButton = document.createElement('button');
-//    deleteButton.innerHTML = ` <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
-//    <path d="M11.854 4.146a.5.5 0 0 1 0 .708L8.707 8 11.854 11.146a.5.5 0 1 1-.708.708L8 8.707 4.854 11.854a.5.5 0 1 1-.708-.708L7.293 8 4.146 4.854a.5.5 0 1 1 .708-.708L8 7.293l3.146-3.147a.5.5 0 0 1 .708 0z" />
-//                    </svg > `;
-//    deleteButton.addEventListener('click', function () {
-//        tableBody.removeChild(tr);
-//    });
-//    td10.appendChild(deleteButton);
-//    tr.appendChild(td10);
-
-//    // Добавляем строку в таблицу
-//    tableBody.appendChild(tr);
-//});
-
  function addItemRow () {
     const tableBody = document.querySelector('#addItemTable');
     const rowCount = tableBody.querySelectorAll('tr').length;
@@ -1648,41 +1692,26 @@ async function fireEmployee(id) {
     // Добавляем строку в таблицу
     tableBody.appendChild(tr);
 }
-
-//document.querySelectorAll('.remove-item').forEach(button => {
-//    button.addEventListener('click', function () {
-//        const row = button.closest('tr');  
-//        row.remove();  
-//    });
-//});
-
 function removeItemRow(button) {
         const row = button.closest('tr'); 
         row.remove(); 
-    }
+}
 
-document.querySelector('#fileInputFirst').addEventListener('change', function () {
-    const file = this.files[0];
-    if (file) {
-        const reader = new FileReader();
-        const img = document.querySelector('#imgFirst');
-        reader.onload = function (e) {
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
+//document.querySelector('#fileInputFirst').addEventListener('change', function () {
+//    const file = this.files[0];
+//    if (file) {
+//        const reader = new FileReader();
+//        const img = document.querySelector('#imgFirst');
+//        reader.onload = function (e) {
+//            img.src = e.target.result;
+//        };
+//        reader.readAsDataURL(file);
+//    }
+//});
 function showInput(selectId) {
     const inputContainer = document.getElementById(`input-${selectId}`);
     inputContainer.style.display = 'block'; // Показать блок с инпутом
 }
-
-//document.addEventListener('DOMContentLoaded', function () {
-//    getColors(document.getElementById('select-Colors'));
-//    getMaterials(document.getElementById('select-Materials'));
-//    getEmployees(document.getElementById('select-Employees'));
-//    getClients(document.getElementById('select-Clients'));
-//});
 async function getMaterials(select) {
     console.log(select);
     try {
@@ -1787,6 +1816,60 @@ async function addOption(selectId, button) {
     }
 }
 //-----------------------------------------проект-------------------------------------//
+
+function addProject() {
+    $('#addProject').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+
+    $.ajax({
+        url: `/CurrentProjects/CreateProjectPartial`,
+        type: 'GET',
+        success: async function (data) {
+            await $('#addProjectInner').html(data);
+            getColors(document.getElementById('select-Colors'));
+            getMaterials(document.getElementById('select-Materials'));
+            getEmployees(document.getElementById('select-Employees'));
+            getClients(document.getElementById('select-Clients'));
+        }
+    });
+
+    $('.popup_before').click(function () {
+        $('#addProject').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+}
+function openProjectCard(id) {
+    console.log("Открытие карточки проекта с ID:", id);
+    $('#projectData').css('visibility', 'visible');
+   // $('#projectDataInner').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+
+
+   
+
+    $.ajax({
+        url: `/LoadProjectCard`,
+        type: 'GET',
+        data: { id: id },
+        success: function (data) {
+            $('#projectDataInner').html(data);
+        },
+        error: function () {
+            alert("Ошибка при загрузке данных проекта.");
+        }
+    });
+    //$('#projectData .close-btn').on("click", function () {
+    //    $('#projectData').css('visibility', 'hidden');
+    //    $('.popup_before').css('visibility', 'hidden');
+    //    $('.popup_before').css('z-index', '1');
+    //});
+
+
+    $('.popup_before').click(function () {
+        $('#projectData').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+}
 async function takeProject(employeeId, projectId) {
     if (confirm("Вы уверены, что хотите назначить мастера?")) {
         $.ajax({
@@ -1802,14 +1885,16 @@ async function takeProject(employeeId, projectId) {
         });
     }
 }
-async function deleteItem(id) {
+async function deleteItem(id, but) {
     if (confirm("Вы уверены, что хотите удалить этот Item?")) {
         $.ajax({
             url: `/CurrentProjects/DeleteItem?id=${id}`,
             type: 'POST',
             success: function () {
                 alert('item успешно удалён');
-                location.reload();
+                const row = but.closest('tr');
+                row.remove();  
+                //location.reload();
             },
             error: function () {
                 alert('Ошибка удаления item');
@@ -1817,14 +1902,16 @@ async function deleteItem(id) {
         });
     }
 }
-function deleteFile(fileId) {
+function deleteFile(fileId, but) {
     if (confirm("Вы уверены, что хотите удалить этот файл?")) {
         $.ajax({
             url: `/CurrentProjects/DeleteFile?id=${fileId}`,
             type: 'POST',           
             success: function () {
                 alert('Файл успешно удалён');
-                location.reload();
+                const row = but.closest('tr');
+                row.remove();  
+                //location.reload();
             },
             error: function () {
                 alert('Ошибка удаления файла');
@@ -1832,8 +1919,6 @@ function deleteFile(fileId) {
         });
     }
 }
-
-
 async function editProject(id) {
     console.log("Открытие карточки проекта РЕДАКТИРОВАНИЕ с ID:", id);
     $('#projectData').css('visibility', 'hidden');
@@ -1841,12 +1926,19 @@ async function editProject(id) {
     //$('#addProject').css('z-index', '5');
     $('.popup_before').css('visibility', 'visible');
 
+
+    $('.close-btn').click(function () {
+        $('#addProject').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+        $('.popup_before').css('z-index', '1');
+    });
+
     $.ajax({
         url: `/CurrentProjects/EditProject`,
         type: 'GET',
         data: { id: id },
         success: async function (data) {
-            await $('#addProject').html(data);
+            await $('#addProjectInner').html(data);
             const selectedClientId = document.querySelector('#SelectedClientId').value;
             const selectedEmployeeId = document.querySelector('#SelectedEmployeeId').value;
 
@@ -1895,15 +1987,6 @@ async function editProject(id) {
     });
 }
 
-
-
-//проблема была в том, что обработчики загружались до появления форм на странице
-// сейчас обработчик назначен в нкоплке.
-// но сервер отвечает 400 на отправку данных,
-// пока не разобралась
-
-
-
 $('#addProjectForm').submit(async function (e) {
     e.preventDefault();
     console.log('#addProjectForm');
@@ -1914,7 +1997,6 @@ $('#editProjectForm').submit(async function (e) {
     e.preventDefault();
    await sendProjectData("edit");
 });
-
 async function sendProjectData(method) {
     // ---------------------------- Часть с загрузкой общей инфо проекта ---------------------------- //
     const projectData = new FormData();
@@ -1925,13 +2007,22 @@ async function sendProjectData(method) {
     projectData.append('EmployeeId', $('#select-Employees').val() || 0);
     projectData.append('EmployeePayment', $('#EmployeePaymentInput').val());
     projectData.append('PaymentDate', $('#paymentDate').val());
+    projectData.append('LayoutsRequired', $('#layoutsRequired').val());
+
+    if ($('#isDocumentsComleted').prop('checked')) {
+        projectData.append('IsDocumentsComleted', true);
+    } else {
+        projectData.append('IsDocumentsComleted', false);
+    }
+
+    
 
     //// Получаем файлы проекта
     //const projectFiles = $('#addProjectForm input[type="file"]')[0].files;
     //for (let i = 0; i < projectFiles.length; i++) {
     //    projectData.append('ProjectFiles', projectFiles[i]);
     //}
-    console.log("--------------проект общие--------------");
+   // console.log("--------------проект общие--------------");
     projectData.forEach((value, key) => {
         console.log(key, value);
     });
@@ -2062,15 +2153,13 @@ async function sendProjectData(method) {
     });
     if (docsResponse.ok) {
         console.log('доки загружено');
-       // window.location.href = '/CurrentProjects/Index';
+      //  window.location.href = '/CurrentProjects/Index';
     }
     if (!docsResponse.ok) {
         throw new Error('Ошибка при загрузке файлов проекта.');
     }
     //alert('Файлы проекта успешно загружены!');
 }
-
-
 async function deleteProject(projectId) {
     if (confirm("Вы уверены, что хотите удалить проект?")) {
         $.ajax({
@@ -2099,7 +2188,7 @@ async function loadSalary(id) {
         type: 'GET',
         data: { id: id },
         success: function (data) {
-            $('#salaryDiv').html(data);
+            $('#salaryDivInner').html(data);
         },
         error: function () {
             alert("Ошибка при загрузке данных проекта.");
@@ -2167,14 +2256,23 @@ function savePunishments(button, id) {
 
 //----------------------------архивация-----------------------------------..
 
-function authorizeYandex() {
-    const clientId = "8b27fa746fe34d4991472201331608de";
-    const redirectUri = "https://localhost:7189/ArchiveProjects/AddAccountYandex"; // Должен быть в настройках приложения Яндекса
-    const authUrl = `https://oauth.yandex.ru/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&force_confirm=yes`;
+async function authorizeYandex() {
+    try {
+        const response = await fetch("/ArchiveProjects/GetConfig");
+        const data = await response.json();
 
-    window.location.href = authUrl;
+        if (!data.clientId) {
+            console.error("Ошибка: client_id не получен.");
+            return;
+        }
+
+        const authUrl = `https://oauth.yandex.ru/authorize?response_type=code&client_id=${data.clientId}&redirect_uri=${encodeURIComponent(data.redirectUri)}&force_confirm=yes`;
+
+        window.location.href = authUrl;
+    } catch (error) {
+        console.error("Ошибка при получении client_id:", error);
+    }
 }
-
 async function archiveProject(id)
 {
     console.log(` project id [${id}] archive request`);
@@ -2196,7 +2294,7 @@ async function archiveProject(id)
             console.log(` project id [${id}] archived sucsessfully`);
             console.log(response.responseText);
             alert(response); 
-          //  window.location.href = "/Home/Index";
+            location.reload();
         },
         error: function (response) {
             console.log(response.responseText);
@@ -2204,8 +2302,6 @@ async function archiveProject(id)
         }
     });
 }
-
-
 async function DownloadAndExtractProjectAsync(id) {
     console.log(` project id [${id}] download from archive request`);
 
@@ -2215,11 +2311,182 @@ async function DownloadAndExtractProjectAsync(id) {
         data: { projectId: id },
         success: function (response) {
             console.log(` project id [${id}] dearchived sucsessfully`);
-            alert(response); 
+            alert("разархивировано"); 
+            location.reload();
         },
         error: function (response) {
             let errorMessage = response.responseText || "Ошибка при разархивировании проекта.";
-            alert(response); 
+            alert(errorMessage); 
         }
+    });
+}
+function setActiveAccount(accountId) {
+
+    console.log("setActiveAccount:  " + accountId)
+
+
+    $.ajax({
+        url: `/ArchiveProjects/SetActiveAccount`,
+        type: 'POST',
+        data: { accountId: accountId },
+        success: function (data) {
+            console.log("Аккаунт успешно активирован!");
+            alert("сменили аккаунт");
+        },
+        error: function (data) {
+            alert("Ошибка:", data.message);
+        }
+    });
+
+
+    //fetch(`/ArchiveProjects/SetActiveAccount?id=${accountId}`, {
+    //    method: "POST",
+    //    headers: {
+    //        "Content-Type": "application/json",
+    //        "X-CSRF-TOKEN": document.querySelector('input[name="__RequestVerificationToken"]')?.value
+    //    },
+    //    body: JSON.stringify({ accountId: accountId })
+    //})
+    //    .then(response => response.json())
+    //    .then(data => {
+    //        if (data.success) {
+    //            console.log("Аккаунт успешно активирован!");
+    //            alert("сменили аккаунт");
+    //        } else {
+    //            console.error("Ошибка:", data.message);
+    //        }
+    //    })
+    //    .catch(error => console.error("Ошибка запроса:", error));
+}
+
+
+//---------------------------------цвета и материалы---------------------------------------//
+
+function RedactType(type) {
+    const popup = document.getElementById("editPopup");
+    const popup_before = document.querySelector(".popup_before");
+
+    currentType = "";
+    currentType = type;
+    popup.style.visibility = "visible";
+    popup_before.style.visibility = "visible";
+
+    $('.popup_before').click(function () {
+        $('#editPopup').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
+    });
+
+    $('#searchInput').on("change", () => typeOptionClick($('#searchInput').val()));
+    fetchData(type);
+}
+async function fetchData(type) {
+
+    const response = await fetch(`/CurrentProjects/Get${type}`);
+    dataList = await response.json();
+    console.log(dataList);
+    updateSelectOptions(type);
+}
+function typeOptionClick(id) {
+    console.log("typeOptionClick");
+    console.log(id);
+    let typeId = document.querySelector("#typeId");
+    typeId.value = id;
+    typeId.text = id;
+
+}
+function updateSelectOptions(type) {
+    const searchText = document.getElementById("searchInput").value.toLowerCase();
+    document.querySelector("#typeId").innerHTML = "";
+    const selectElement = document.getElementById("editSelect");
+    selectElement.innerHTML = "";
+    console.log(type);
+    if (type === "Materials") {
+        console.log("type = Materials")
+        dataList.filter(item => item.materialName.toLowerCase().startsWith(searchText))
+            .forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.materialName;
+                selectElement.appendChild(option);
+            });
+    }
+
+    if (type === "Colors") {
+        console.log("type = Colors")
+        dataList.filter(item => item.colorName.toLowerCase().startsWith(searchText))
+            .forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.colorName;
+
+                selectElement.appendChild(option);
+            });
+    }
+}
+async function saveTypeChanges() {
+    //  const selectElement = document.getElementById("editSelect");
+    // const inputField = document.getElementById("searchInput");
+    const selectedType = document.getElementById("searchInput").value;
+    const newName = document.querySelector("#typeId").value;
+
+    console.log(`/CurrentProjects/Update${currentType}?name=${selectedType}&newName=${newName}`);
+
+    if (!selectedType || !newName) return;
+
+    const response = await fetch(`/CurrentProjects/Update${currentType}?name=${selectedType}&newName=${newName}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+        //  body: JSON.stringify({ id: selectedId, name: newName })
+    });
+    if (response.ok) {
+        location.reload();
+    }
+    else {
+        //const responseData = response.json();
+        alert("Ошибка:", response.message);
+    }
+}
+async function deleteTypeItem() {
+    // const selectElement = document.getElementById("editSelect");
+    const selectedType = document.querySelector("#typeId").value;
+
+    if (!selectedType) return;
+
+    console.log(`/CurrentProjects/Delete${currentType}?name=${selectedType}`);
+
+    const response = await fetch(`/CurrentProjects/Delete${currentType}?name=${selectedType}`, { method: "DELETE" });
+    if (response.ok) {
+        location.reload();
+    }
+    else {
+        //const responseData = response.json();
+        alert("Ошибка:", response.message);
+    }
+}
+
+
+
+//---------------------------------прочее---------------------------------------//
+
+function closeDiv(div) {
+    console.log("closeDiv" + div);
+    $('#' + div).css('visibility', 'hidden');
+    console.log(`#${div}`);
+   // $('#'+id).css('visibility', 'hidden');
+    $('.popup_before').css('visibility', 'hidden');
+}
+
+
+function addJournalTopic() {
+ 
+    $('#addTopic').css('visibility', 'visible');
+    $('.popup_before').css('visibility', 'visible');
+
+    $.get("/Journal/AddTopicPartial", function (data) {
+        $("#addTopicInner").html(data);
+    });
+    
+
+    $('.popup_before').click(function () {
+        $('#editPopup').css('visibility', 'hidden');
+        $('.popup_before').css('visibility', 'hidden');
     });
 }

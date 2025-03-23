@@ -2,24 +2,14 @@
 
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ErpUser> UserManager
-  @*   <div class="header">
-        <!-- <button> остатки материала </button> -->
-        <button>очередь проектов | текущие проекты</button>
-
-        <!-- <button>журнал</button> -->
-        <button>архив проектов | журнал</button>
-        <!-- <button id="addProjectButton">добавить проект</button> -->
-    </div> 
-    @model ERP.ViewModels.CurrentProjectsViewModel
-    *@
 
 <h3 class="master_name">ОЧЕРЕДЬ ПРОЕКТОВ</h3>
 
 <div id="newProjectsContainer" class="master_list red">
     @if (User.IsInRole("Boss"))
     {
-        <div id="addProjectButton" class="project">
-            <img src="images\плюсик.jpg" alt="">
+        <div id="addProjectButton" onclick="addProject()" class="project">
+            <img src="~/plus.jpg" alt="">
             <div class="project_text">
                 <p>добавить проект</p>
             </div>
@@ -27,33 +17,139 @@
     }
 </div>
 
-
+ 
 <div id="employeesContainer"></div>
-<div class="header">
-    <button onclick="AddEmployee()">ДОБАВИТЬ СОТРУДНИКА</button>
-</div>
-<div class="header">
-    <button onclick="AddClient()">ДОБАВИТЬ ЗАКАЗЧИКА</button>
-</div>
-@* <div class="header">
-    <button onclick="CloseMonth()">ЗАКРЫТЬ МЕСЯЦ</button>
-</div> *@
 
 
-<div class="popup_before"></div>
-<div id="projectData" class="popup"> </div> 
-<div id="addProject" class="popup"></div>
-<div id="salaryDiv" class="popup"></div>
+<div id="salaryDiv" class="popup">
+    <svg class="close-btn" onclick="closeDiv('salaryDiv')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="salaryDivInner" class="inner-container"></div>
+</div>
+
+<div id="calendarContainerForeign" class="popup ">
+    <svg class="close-btn" onclick="closeDiv('calendarContainerForeign')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="calendarContainer" class="inner-container calendar-container"> <div class="calendar" id="calendar"></div> </div>
+</div>
 
 <div class="modal" id="taskModal">
     @Html.Partial("_TaskViewPartial")
 </div>
-<div id="calendarContainer" class="popup calendar-container">
-    <!-- <div class="calendar-container" id="calendarContainer"> -->
-    <div class="calendar" id="calendar"></div>
-    <!-- </div> -->
-    <!-- Modal for adding/editing tasks -->
-  
+
+<div id="addImage" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('addImage')" xmlns="http://www.w3.org/2000/svg" width="24"
+         height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addImageInner" class="inner-container"> @* @Html.Partial("_AddPhotosPartial") *@ </div>
+</div>
+
+<div id="addEmployee" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('addEmployee')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addEmployeeInner" class="inner-container"></div>
+</div>
+
+<div id="addClient" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('addClient')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addClientInner" class="inner-container">@Html.Partial("_CreateClientPartial")</div>
+</div>
+
+<div id="employeeData" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('employeeData')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="employeeDataInner" class="inner-container"></div>
+</div>
+
+
+<div id="editPopup" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('editPopup')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+            viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+
+    <h2>Редактировать</h2>
+    <input type="text" id="searchInput" list="editSelect" placeholder="Введите название...">
+    <input type="text" id="typeId" placeholder="Введите новое название...">
+
+    <datalist id="editSelect"> </datalist>
+    <button onclick="saveTypeChanges()" id="saveChanges">Сохранить</button>
+    <button onclick="deleteTypeItem()" id="deleteItem">Удалить</button>
+
+</div>
+
+@* 
+<div class="popup_before"></div>
+
+<div id="projectData" class="popup">
+    <svg class="close-btn" onclick="closeDiv('projectData')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="projectDataInner" class="inner-container"></div>
+</div>
+
+
+<div id="addProject" class="popup">
+    <svg class="close-btn" onclick="closeDiv('addProject')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addProjectInner" class="inner-container"></div>
+</div>
+
+<div id="salaryDiv" class="popup">
+    <svg class="close-btn" onclick="closeDiv('salaryDiv')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="salaryDivInner" class="inner-container"></div>
+</div>
+
+<div class="modal" id="taskModal">
+    @Html.Partial("_TaskViewPartial")
+</div>
+<div id="calendarContainerForeign" class="popup ">
+    <svg class="close-btn" onclick="closeDiv('calendarContainerForeign')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="calendarContainer" class="inner-container calendar-container"> <div class="calendar" id="calendar"></div> </div>
+   
+
 </div> 
 
 <div id="addImagePopUp" class="popup_small">
@@ -64,14 +160,69 @@
     </svg>
     @Html.Partial("_AddPhotosPartial")
 </div>
+  <div id="editClient" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('editClient')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="editClientInner" class="inner-container"></div>
+</div> 
+
 <div id="addEmployeePopUp" class="popup_small">
-    @Html.Partial("_CreateEmployeePartial")
+    <svg class="close-btn" onclick="closeDiv(this)" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+   @Html.Partial("_CreateEmployeePartial")
 </div>
 <div id="addClient" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv(this)" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
     @Html.Partial("_CreateClientPartial")
 </div>
 
-<div id="employeeData" class="popup_small"></div>
-<div id="gallery" class="popup"></div>
+<div id="employeeData" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv(this)" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+</div>
+<div id="gallery" class="popup">
+    <svg class="close-btn" onclick="closeDiv(this)" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+</div>
 
+<div id="editPopup" class="popup_small">
+  
+    <h2>Редактировать</h2>
+    <input type="text" id="searchInput" list="editSelect" placeholder="Введите название...">
+    <input type="text" id="typeId" placeholder="Введите новое название...">
+
+    @*  <input list="character">
+    <datalist id="character">
+        <option value="Чебурашка"></option>
+        <option value="Крокодил Гена"></option>
+        <option value="Шапокляк"></option>
+    </datalist>
+    <select id="editSelect" size="5"></select> 
+    <datalist id="editSelect"> </datalist>
+        <button onclick="saveTypeChanges()" id="saveChanges">Сохранить</button>
+        <button onclick="deleteTypeItem()" id="deleteItem">Удалить</button>
+
+</div>
+ *@
 

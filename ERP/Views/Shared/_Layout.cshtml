@@ -3,15 +3,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ERP</title>
+    <title>@ViewData["Title"] - СУП</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ERP.styles.css" asp-append-version="true" />
+    <link rel="icon" type="image/x-icon" href="~/SUPfavicon.ico" />
 </head>
 <body>
     <header>
         <div class="header">
-          
+            <a class="button" asp-controller="Journal" asp-action="Topics">Журнал по темам</a>
             <a class="button" asp-controller="CurrentProjects" asp-action="Index">Текущие проекты</a>
             <a class="button" asp-controller="ArchiveProjects" asp-action="ArchiveProjects">Архив</a>
            @*  <a class="button" asp-controller="ArchiveProjects" asp-action="Gallery">Галерея</a>
@@ -35,9 +36,48 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
-         
+
             @RenderBody()
-          
+
+            <div class="popup_before"></div>
+
+
+            <div id="editClient" class="popup">
+                <svg class="close-btn" onclick="closeDiv('editClient')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                     viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <div id="editClientInner" class="inner-container"></div>
+            </div>
+
+
+            <div id="projectData" class="popup">
+                <svg class="close-btn" onclick="closeDiv('projectData')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                     viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <div id="projectDataInner" class="inner-container"></div>
+            </div>
+
+
+            <div id="addProject" class="popup">
+                <svg class="close-btn" onclick="closeDiv('addProject')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                     viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <div id="addProjectInner" class="inner-container"></div>
+            </div>
+
+
+
+
+
         </main>
     </div>
 
@@ -50,6 +90,10 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajax-unobtrusive/3.2.6/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/mvc/3.0/jquery.validate.unobtrusive.min.js"></script> 
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

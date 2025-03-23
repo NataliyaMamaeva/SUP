@@ -1,0 +1,115 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Archive_Projects";
+}
+@model List<ERP.Models.JournalTopic>
+
+<button class="add-topic-btn" onclick="addJournalTopic()">Добавить тему</button>
+
+
+<div class="clients">
+    @foreach (var topic in Model.OrderBy(c => c.JournalTopicName))
+    {
+        <div class="client-container">
+            <div class="header client-header" onclick="toggleProjects(this)">
+                <h5>@topic.JournalTopicName</h5>
+            </div>
+            <div class="client-details hidden">
+
+                <div class="journal-notes">
+
+                    @foreach (var note in topic.JournalNotes)
+                    {
+                        <div class="journal-container">
+                            <input type="hidden" id="journalNoteId" value="@note.JournalNoteId" />
+                            <!-- Верхняя строка -->
+                            <div class="journal-header">
+                                <label for="journal-theme">Проект:</label>
+                                <input class="note-projectId" data-project-id="@note.Project?.ProjectId" type="text" value="@note.Project?.ProjectName" />
+                                <label for="journal-theme">Тема:</label>
+                                <select class="topic-select">
+                                    <option value="@note.JournalTopicId">@note.JournalTopicName</option>
+                                    @foreach (var topicOption in ViewBag.topics)
+                                    {
+                                        @if (topicOption.JournalTopicName == note.JournalTopicName)
+                                        {
+                                            continue;
+                                        }
+                                        <option value="@topicOption.JournalTopicId">@topicOption.JournalTopicName</option>
+                                    }
+                                </select>
+                              @*   <select>
+                                    <option value="@note.JournalTopicId">@note.JournalTopicName</option>
+                                    @foreach (var topic in ViewBag.topics)
+                                    {
+                                        @if (topic.JournalTopicName == note.JournalTopicName)
+                                        {
+                                            continue;
+                                        }
+                                        <option value="@topic.JournalTopicId">@topic.JournalTopicName</option>
+                                    }
+                                </select> *@
+                                <button class="delete-note-btn" onclick="deleteJournalNote(this)" title="Удалить">
+                                    <svg width="24" height="24" viewBox="0 0 24 24">
+                                        <path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Контент -->
+                            <div class="journal-content">
+                                <div class="text_block">
+                                    <textarea onblur="sendCardText('PutProjectNote', @note.JournalNoteId)"
+                                              oninput="textareaResize(this)"> @note.JournalNoteDescription</textarea>
+                                </div>
+
+                                <div class="journal_images gallery">
+                                    <img onclick="plusClick('журналФото', @(note.ProjectId != null ? note.ProjectId : "null"), @note.JournalNoteId)" class="plus" src="~/plus.jpg" alt="Добавить фото" />
+                                    @foreach (var photo in note.Photos)
+                                    {
+                                        <img onclick="openGallery(this)" data-file-id="@photo.FileId" src="@photo.FilePath" alt="@photo.FileTitle">
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <button class="add-note-btn" onclick="addJournalNote()">Добавить заметку</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<div id="addTopic" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('addTopic')" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+         viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addTopicInner" class="inner-container"></div>
+</div>
+
+
+<div id="addImage" class="popup_small">
+    <svg class="close-btn" onclick="closeDiv('addImage')" xmlns="http://www.w3.org/2000/svg" width="24"
+         height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+    <div id="addImageInner" class="inner-container"> @* @Html.Partial("_AddPhotosPartial") *@</div>
+</div>
+
+
+
+
+
+<script>
+    function toggleProjects(header) {
+        const details = header.nextElementSibling;
+        details.classList.toggle('hidden');
+    }
+</script>

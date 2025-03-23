@@ -6,22 +6,15 @@
 }
 @model List<ERP.ViewModels.ClientProjectsViewModel>
 
-@* --------- переписать  модель ??? что бы потдягивались аккаунты .и отмечался выбранный ----------------
-    ------------на выбор другого аккаунта отправлять запрос. что бы переназначился каррент -------------------
-*@
-
 @if(User.IsInRole("Boss"))
 {
-
-    //-------------------обработка события OnChange или просто клик ?   ---------  переназначать на сервере активный аккаунт 
-    // --------------------------------передавать аккаунты с вьюМоделью?????_________________-
 <div class="header">   
         <div class="account-list">
             @foreach(var account in @Model[0].Accounts)
             {
                 <label class="radio-container">
 
-                    <input type="radio" @(account.IsCurrent ? "checked" : "") name="account" value="@account.AccountId">
+                    <input type="radio" @(account.IsCurrent ? "checked" : "") onchange="setActiveAccount(@account.AccountId)" name="account" value="@account.AccountId">
                  
                     <span class="checkmark"> @account.Email</span>   
                 </label>    
@@ -111,7 +104,7 @@
     }
 </div>
 
-
+@* 
 <div class="popup_before"></div>
 <div id="projectData" class="popup"> </div>
 <div id="addProject" class="popup"></div>
@@ -127,8 +120,9 @@
 </div>
 
 <div id="editClient" class="popup_small">
-  @*  @Html.Partial("_CreateClientPartial") *@
+   @Html.Partial("_CreateClientPartial") 
 </div>
+ *@
 
 
 <script>

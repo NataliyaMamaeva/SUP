@@ -12,6 +12,8 @@ using System.Globalization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System.Configuration;
 
 
 namespace ERP
@@ -24,6 +26,8 @@ namespace ERP
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
             var builder = WebApplication.CreateBuilder(args);
+            builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -32,47 +36,28 @@ namespace ERP
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddHttpClient();
 
-            //builder.Services.AddDefaultIdentity<ErpUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            //    .AddEntityFrameworkStores<ErpContext>();
-            //builder.Services.AddControllersWithViews();
-
-            // Оставляем только AddIdentity, чтобы избежать конфликта
             builder.Services.AddIdentity<ErpUser, IdentityRole>()
                 .AddEntityFrameworkStores<ErpContext>()
                 .AddDefaultTokenProviders(); // Добавляет токены для сброса пароля и других функций 
 
-            builder.Services.Configure<YandexDiskSettings>(builder.Configuration.GetSection("YandexDisk"));
+            //builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            //var configJson = File.ReadAllText("appsettings.json");
 
+            builder.Services.AddHostedService<YandexTokenRefreshService>();
+
+            builder.Services.Configure<YandexDiskSettings>(builder.Configuration.GetSection("YandexDisk"));
+            builder.Services.AddScoped<EmailSender>();
+
+            var yandexSettings = builder.Configuration.GetSection("YandexDisk").Get<YandexDiskSettings>();
 
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();  // Для вывода логов в консоль
             builder.Logging.AddFile("Logs/app-log-{Date}.txt"); // Для вывода логов в файл
+
+            builder.Services.AddDataProtection()
+                        .PersistKeysToFileSystem(new DirectoryInfo(@"Keys"));
+
           
-
-
-            builder.Services.AddHttpClient<IYandexDiskService, YandexDiskService>((provider, client) =>
-            {
-                var config = provider.GetRequiredService<IConfiguration>();
-                string accessToken = config["YandexDisk:AccessToken"];
-
-                client.BaseAddress = new Uri("https://cloud-api.yandex.net/v1/disk/");
-                client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
-            });
-            //builder.Services.AddHttpClient<IYandexDiskService, YandexDiskService>()
-            //    .AddTypedClient((httpClient, provider) =>
-            //    {
-            //        var options = provider.GetRequiredService<IOptions<YandexDiskSettings>>();
-            //        return new YandexDiskService(httpClient, options.Value.AccessToken);
-            //    });
-
-
-            //builder.Services.ConfigureApplicationCookie(options =>
-            //{
-            //    options.LoginPath = "/Account/Login"; // Путь к вашей странице входа
-            //    options.LogoutPath = "/Account/Logout";
-            //    options.AccessDeniedPath = "/Account/AccessDenied";
-            //});
-
 
             builder.Services.ConfigureApplicationCookie(options =>
             {
@@ -94,6 +79,14 @@ namespace ERP
             builder.Services.AddControllers();
             builder.Services.AddRazorPages();
 
+           
+
+            builder.Services.Configure<KestrelServerOptions>(options =>
+            {
+                options.Limits.MaxRequestBodySize = null; // Установка null для отключения ограничения загружаемых файлов
+            });
+
+
             var app = builder.Build();
 
             //// Configure the HTTP request pipeline.
@@ -113,9 +106,17 @@ namespace ERP
             //    await next.Invoke();
             //});
 
-     
+        
 
 
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                ServeUnknownFileTypes = true,
+                DefaultContentType = "application/octet-stream",
+            });
+
+           
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -211,6 +212,9 @@ namespace ERP
             }
 
             app.Run();
+
+          
+
         }
     }
 }

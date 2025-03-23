@@ -1,5 +1,7 @@
 ﻿namespace ERP.Models
 {
+
+
     public class YandexAccount
     {
         public int Id { get; set; }               // Уникальный ID

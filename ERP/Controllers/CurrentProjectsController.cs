@@ -16,6 +16,8 @@ using Microsoft.Build.Evaluation;
 //using ERP.Data.Migrations;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.DataProtection;
+using System.Security.Cryptography;
 
 
 
@@ -28,10 +30,12 @@ namespace ERP.Controllers
         private static readonly SemaphoreSlim _outputLock = new SemaphoreSlim(1, 1);
         private readonly ErpContext _context;
         private readonly UserManager<ErpUser> _userManager;
-        public CurrentProjectsController(UserManager<ErpUser> userManager, ErpContext context)
+        private readonly IDataProtector _protector;
+        public CurrentProjectsController(UserManager<ErpUser> userManager, ErpContext context, IDataProtectionProvider provider)
         {
             _userManager = userManager;
             _context = context;
+            _protector = provider.CreateProtector("PassportShifre");
         }
 
         //------------------------------------------------------view без модели--------------------------------------------------//
@@ -136,48 +140,6 @@ namespace ERP.Controllers
 
         //====================================================================Employees=======================================================//
 
-        [HttpPost]
-        public async Task<IActionResult> AddEmployee(CreateEmployeeViewModel model)
-        {
-            Console.WriteLine(model);
-            if (!ModelState.IsValid)
-            {
-               // return BadRequest("Некорректные данные. Проверьте форму.");
-            }
-
-            var existingUser = await _userManager.FindByEmailAsync(model.Email);
-            if (existingUser != null)
-            {
-                return Conflict(new { Message = "Пользователь с таким email уже существует." });
-            }
-            var employee = new Employee
-            {
-                EmployeeName = model.EmployeeName,
-                PhoneNumber = model.PhoneNumber,
-                BossId = model.BossId ?? null,
-                Passport = model.Passport,
-                Position = model.Position ?? "Master",
-                Email = model.Email
-            };
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-            var user = new ErpUser
-            {
-                UserName = model.Email,
-                Email = model.Email,
-                EmployeeId = employee.EmployeeId
-            };
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-
-            if (!result.Succeeded)
-            {
-                _context.Employees.Remove(employee);
-                await _context.SaveChangesAsync();
-                return BadRequest(new { Message = "Не удалось создать пользователя.", Errors = result.Errors });
-            }
-            return RedirectToAction("Index");
-        }
 
         [HttpGet]
         [Route("CurrentProjects/GetEmployees")]
@@ -185,6 +147,51 @@ namespace ERP.Controllers
         {
             return Json(_context.Employees.Where(e => e.IsFired != true));
         }
+
+        //[HttpPost]
+        //public async Task<IActionResult> AddEmployee(CreateEmployeeViewModel model)
+        //{
+        //    Console.WriteLine(model);
+        //    if (!ModelState.IsValid)
+        //    {
+        //       // return BadRequest("Некорректные данные. Проверьте форму.");
+        //    }
+
+        //    var existingUser = await _userManager.FindByEmailAsync(model.Email);
+        //    if (existingUser != null)
+        //    {
+        //        return Conflict(new { Message = "Пользователь с таким email уже существует." });
+        //    }
+        //    var employee = new Employee
+        //    {
+        //        EmployeeName = model.EmployeeName,
+        //        PhoneNumber = model.PhoneNumber,
+        //        BossId = model.BossId ?? null,
+        //        Passport = model.Passport,
+        //        Position = model.Position ?? "Master",
+        //        Email = model.Email
+        //    };
+        //    _context.Employees.Add(employee);
+        //    await _context.SaveChangesAsync();
+        //    var user = new ErpUser
+        //    {
+        //        UserName = model.Email,
+        //        Email = model.Email,
+        //        EmployeeId = employee.EmployeeId
+        //    };
+        //    var result = await _userManager.CreateAsync(user, model.Password);
+
+
+        //    if (!result.Succeeded)
+        //    {
+        //        _context.Employees.Remove(employee);
+        //        await _context.SaveChangesAsync();
+        //        return BadRequest(new { Message = "Не удалось создать пользователя.", Errors = result.Errors });
+        //    }
+        //    return RedirectToAction("Index");
+        //}
+
+
 
         public IActionResult LoadEmployeeCard(int id)
         {
@@ -198,13 +205,34 @@ namespace ERP.Controllers
             {
                 return NotFound();
             }
-            
+
+            string decryptedPassport;
+            try
+            {
+                decryptedPassport = _protector.Unprotect(employee.Passport);
+            }
+            catch (CryptographicException)
+            {
+                Console.WriteLine("Ошибка расшифровки");
+                decryptedPassport = employee.Passport;
+            }
+
+            var model = new Employee
+            {
+                EmployeeId = id,
+                PhoneNumber = employee.PhoneNumber,
+                Passport = decryptedPassport,
+                Email = employee.Email,
+                EmployeeName = employee.EmployeeName
+            };
+
+           
             var bosses = _context.Employees.ToList();           
             var positions = new List<string> { "Boss", "Master", "Designer", "PhoneManager" };
             ViewBag.Bosses = bosses;
             ViewBag.Positions = positions;
 
-            return PartialView("_EmployeeCardPartial", employee);
+            return PartialView("_EmployeeCardPartial", model);
         }
 
         [HttpPost]
@@ -218,7 +246,7 @@ namespace ERP.Controllers
 
             int? exBossId = employee.BossId;
             employee.PhoneNumber = updatedEmployee.PhoneNumber;
-            employee.Passport = updatedEmployee.Passport;
+            employee.Passport = _protector.Protect(updatedEmployee.Passport);
             employee.Email = updatedEmployee.Email;
             if(updatedEmployee.Position != null)
                 employee.Position = updatedEmployee.Position;
@@ -248,18 +276,61 @@ namespace ERP.Controllers
             return Json(positions);
         }
 
-        public IActionResult FireEmployee (int id)
+        //public IActionResult FireEmployee (int id)
+        //{
+
+
+        //    Console.WriteLine("FireEmployee");
+        //    Console.WriteLine(id);
+        //    var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId ==  id);
+        //    if (employee == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    employee.IsFired = true;
+        //    var user = _userManager.FindByEmailAsync(employee.Email);
+        //    Console.WriteLine(user);
+        //    //if (user != null)
+        //    //    _context.Users.Remove(user);
+
+
+        //    _context.SaveChanges();
+
+        //    return Ok();
+        //}
+
+        public async Task<IActionResult> FireEmployee(int id)
         {
-            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId ==  id);
+            Console.WriteLine("FireEmployee");
+            Console.WriteLine(id);
+
+            var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId == id);
             if (employee == null)
             {
-                return NotFound();
+                return NotFound("Сотрудник не найден");
             }
-            employee.IsFired = true;
-            _context.SaveChanges();
 
-            return Ok();
+            // Помечаем сотрудника как уволенного
+            employee.IsFired = true;
+
+            // Находим пользователя в ASP.NET Identity
+            var user = await _userManager.FindByEmailAsync(employee.Email);
+            if (user != null)
+            {
+                // Удаляем пользователя из системы Identity
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Ошибка при удалении пользователя.");
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Сотрудник успешно уволен.");
         }
+
 
         //============================================================Salary================================================================//
 
@@ -650,8 +721,8 @@ namespace ERP.Controllers
         [Route("CurrentProjects/AddProject")]
         public async Task<IActionResult> AddProject([FromForm] ProjectViewModel model)
         {
-             Console.WriteLine("----------AddProject-------------");
-           
+            //   Console.WriteLine("----------AddProject-------------");
+            Console.WriteLine(model);
             
             if (!ModelState.IsValid)
             {
@@ -678,7 +749,9 @@ namespace ERP.Controllers
                     ClientId = model.ClientId,
                     EmployeeId = model.EmployeeId != 0 ? model.EmployeeId : null,
                     EmployeePayment = model.EmployeePayment,
-                    PaymentDate = model.PaymentDate ?? DateOnly.FromDateTime(DateTime.Today)
+                    PaymentDate = model.PaymentDate ?? DateOnly.FromDateTime(DateTime.Today),
+                    IsDocumentsComleted = model.IsDocumentsComleted,
+                    LayoutsRequired = model.LayoutsRequired
                 };
                 _context.Projects.Add(project);
                 _context.SaveChanges();
@@ -693,10 +766,43 @@ namespace ERP.Controllers
                 project = await _context.Projects.FirstAsync(p => p.ProjectId == model.ProjectId);
                 project.ProjectName = model.ProjectName;
                 project.Deadline = model.Deadline;
+                project.IsDocumentsComleted = model.IsDocumentsComleted;
+                project.LayoutsRequired = model.LayoutsRequired;
+                if (project.ClientId != model.ClientId)
+                {
+                    // Формируем старый и новый путь
+                    var oldClient = (await _context.Clients.FindAsync(project.ClientId))?.Title?.Replace(" ", "_").Replace(":", "_");
+                    var newClient = (await _context.Clients.FindAsync(model.ClientId))?.Title?.Replace(" ", "_").Replace(":", "_");
+
+                    if (!string.IsNullOrEmpty(oldClient) && !string.IsNullOrEmpty(newClient))
+                    {
+                        var sanitizedProjectName = project.ProjectName.Replace(" ", "_").Replace(":", "_");
+                        var oldPath = Path.Combine("wwwroot", oldClient, sanitizedProjectName);
+                        var newPath = Path.Combine("wwwroot", newClient, sanitizedProjectName);
+
+                        try
+                        {
+                            if (Directory.Exists(oldPath))
+                            {
+                                // Создаём папку нового клиента, если её нет
+                                Directory.CreateDirectory(Path.Combine("wwwroot", newClient));
+
+                                // Перемещаем папку проекта
+                                Directory.Move(oldPath, newPath);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Ошибка при перемещении папки: {ex.Message}");
+                            // Логирование ex.StackTrace или другой обработчик ошибок
+                        }
+                    }
+                }
+
                 project.ClientId = model.ClientId;
                 project.PaymentDate = (DateOnly)model.PaymentDate;
 
-                Console.WriteLine("model.EmployeeId: " + model.EmployeeId + " | project.EmployeeId: " + project.EmployeeId);
+              //  Console.WriteLine("model.EmployeeId: " + model.EmployeeId + " | project.EmployeeId: " + project.EmployeeId);
 
                 if (model.EmployeeId != project.EmployeeId && model.EmployeeId != 0)
                     await ProjectSalaryRecount(project.ProjectId, (int)model.EmployeeId);
@@ -714,9 +820,9 @@ namespace ERP.Controllers
         [Route("CurrentProjects/addItems")]
         public async Task<IActionResult> addItems([FromForm] List<ItemUploadViewModel> items)
         {
-            Console.WriteLine("-------------Method: AddItems----------------");
+         //   Console.WriteLine("-------------Method: AddItems----------------");
             string? method = Request.Query["method"];
-            Console.WriteLine("-------------Method:" + method);
+           // Console.WriteLine("-------------Method:" + method);
 
             if (items == null || !items.Any())
             {
@@ -743,11 +849,11 @@ namespace ERP.Controllers
 
                 Console.WriteLine("itemDTO==============  " + itemDto);
 
-                Item itemExist = _context.Items.FirstOrDefault(i => i.ItemId == itemDto.ItemId);
-                if(itemExist != null)
-                {
+                //Item itemExist = _context.Items.FirstOrDefault(i => i.ItemId == itemDto.ItemId);
+                //if(itemExist != null)
+                //{
 
-                }
+                //}
                 if (itemDto.Sketch != null)
                 {
                     var sanitizedItemName = itemDto.Sketch.FileName.Replace(" ", "_").Replace(":", "_");
@@ -759,6 +865,12 @@ namespace ERP.Controllers
                     {
                         await itemDto.Sketch.CopyToAsync(stream);
                     }
+
+                    //защита от дубликата
+                    Item itemExist = _context.Items.FirstOrDefault(i => i.SketchPath == "\\" + filePath);
+                    if (itemExist != null)
+                        continue;
+
                     var item = new Item
                     {
                         ItemType = itemDto.ItemType,
@@ -797,7 +909,7 @@ namespace ERP.Controllers
         [Route("CurrentProjects/editItems")]
         public async Task<IActionResult> editItems([FromForm] List<ItemUploadViewModel> items)
         {
-            Console.WriteLine("-------------Method: editItems----------------");
+           // Console.WriteLine("-------------Method: editItems----------------");
             string? method = Request.Query["method"];
             //Console.WriteLine("-------------Method:" + method);
 
@@ -822,7 +934,7 @@ namespace ERP.Controllers
             foreach (var itemDto in items)
             {
 
-                Console.WriteLine("itemDTO==============  " + itemDto);
+              //Console.WriteLine("itemDTO==============  " + itemDto);
 
                 Item itemExist = _context.Items.FirstOrDefault(i => i.ItemId == itemDto.ItemId);
                 if (itemExist != null)
@@ -851,8 +963,8 @@ namespace ERP.Controllers
                     itemExist.Colors = itemDto.Colors;
                     itemExist.Deadline = itemDto.Deadline;
                     itemExist.ProjectId = projectId;
-                    Console.WriteLine("correct item");
-                    Console.WriteLine( $"itemPrice: {itemExist.Price}  itemAmount: {itemExist.Amount}--" );
+                    //Console.WriteLine("correct item");
+                    //Console.WriteLine( $"itemPrice: {itemExist.Price}  itemAmount: {itemExist.Amount}--" );
                                     
                     projectPrice += itemExist.Price * itemExist.Amount;
                 }
@@ -881,26 +993,26 @@ namespace ERP.Controllers
                         SketchPath = "\\" + filePath,
                     };
                     savedItems.Add(item);
-                    Console.WriteLine("create item");
-                    Console.WriteLine($"itemPrice: {item.Price}  itemAmount: {item.Amount}--");
+                  //  Console.WriteLine("create item");
+                  //  Console.WriteLine($"itemPrice: {item.Price}  itemAmount: {item.Amount}--");
 
                     projectPrice += item.Price * item.Amount;
                 }
-                Console.WriteLine("projectPrice: " + projectPrice);
+             //   Console.WriteLine("projectPrice: " + projectPrice);
 
             }
             foreach (var savedItem in savedItems)
             {
-                Console.WriteLine(savedItem.ToString());
+               // Console.WriteLine(savedItem.ToString());
                 _context.Items.Add(savedItem);
             }
-            Console.WriteLine($"project {project.ProjectName} payment total: " + projectPrice);
+          //  Console.WriteLine($"project {project.ProjectName} payment total: " + projectPrice);
             project.PaymentTotal = projectPrice;
 
             if (method == "add")
                 project.EmployeePayment = projectPrice * 0.14m;
 
-            Console.WriteLine(" -----------------project payment total: " + project.PaymentTotal);
+          //  Console.WriteLine(" -----------------project payment total: " + project.PaymentTotal);
             _context.SaveChanges();
             return Ok("Данные успешно загружены.");
 
@@ -939,6 +1051,12 @@ namespace ERP.Controllers
                     if (item.FilePath != null)
                     {
                         var fileName = item.FilePath.FileName.Replace(" ", "_").Replace(":", "_");
+
+                        //защита от дубликата
+                        var fileExist = _context.ProjectFiles.FirstOrDefault(f => f.FileTitle ==  fileName);
+                        if (fileExist != null) continue;
+
+
                         var uploadsFolder = Path.Combine(client, sanitizedProjectName, "files");
                         Directory.CreateDirectory(Path.Combine("wwwroot", uploadsFolder));
                         var filePath = Path.Combine(uploadsFolder, fileName);
@@ -996,6 +1114,11 @@ namespace ERP.Controllers
                     if (item.FilePath != null)
                     {
                         var fileName = item.FilePath.FileName.Replace(" ", "_").Replace(":", "_");
+
+                        //защита от дубликата
+                        var fileExist = _context.ProjectFiles.FirstOrDefault(f => f.FileTitle == fileName);
+                        if (fileExist != null) continue;
+
                         var uploadsFolder = Path.Combine(client, sanitizedProjectName, "documents");
                         Directory.CreateDirectory(Path.Combine("wwwroot", uploadsFolder));
                         var filePath = Path.Combine(uploadsFolder, fileName);
@@ -1032,6 +1155,10 @@ namespace ERP.Controllers
              .Include(p => p.Employee)
              .Include(p => p.Items)
              .Include(p => p.ProjectFiles)
+             .Include(p =>p.JournalNotes)
+                .ThenInclude(n => n.JournalTopic)
+             .Include(p => p.JournalNotes)
+                 .ThenInclude(n => n.Photos)
              .FirstOrDefaultAsync(p => p.ProjectId == id);
 
             if (project == null)
@@ -1053,12 +1180,29 @@ namespace ERP.Controllers
                 AdvanceRate = project.AdvanceRate,
                 EmployeePayment = project.EmployeePayment,
                 Description = project.Description,
-                Journal = project.Journal,
+                IsDocumentsComleted = project.IsDocumentsComleted ?? false,
+                LayoutsRequired = project.LayoutsRequired,
+                JournalNotes = project.JournalNotes?.Select(i => new JournalNote
+                {
+                    JournalNoteDescription = i.JournalNoteDescription,
+                    JournalNoteId = i.JournalNoteId,
+                    JournalTopicId = i.JournalTopic.JournalTopicId,
+                    JournalTopicName = i.JournalTopic.JournalTopicName,
+                    Photos = i.Photos.Select(p => new ProjectFile
+                    { 
+                        FileId = p.FileId,
+                        FileTitle = p.FileTitle,
+                        FilePath = p.FilePath,
+                        UploadedAt = p.UploadedAt
+                    }).ToList(),
+                }).ToList(),
                 Items = project.Items.Select(i => new ItemCardViewModel
                 {
                     ItemType = i.ItemType,
                     ItemName = i.ItemName,
                     SketchPath = i.SketchPath,
+                    SelectedColors = i.Colors,
+                    SelectedMaterials = i.Materials,
                     Amount = i.Amount,
                     ItemDescription = i.ItemDescription
                 }).ToList(),
@@ -1076,19 +1220,21 @@ namespace ERP.Controllers
                 }).ToList(),
                 Gallery = project.ProjectFiles.Where(f => f.FileType == "фото").Select(f => new FileCardViewModel
                 {
+                    FileId = f.FileId,
                     FileTitle = f.FileTitle,
                     FilePath = f.FilePath,
                     UploadedAt = f.UploadedAt
                 }).ToList(),
-                JournalPhotos = project.ProjectFiles.Where(f => f.FileType == "журналФото").Select(f => new FileCardViewModel
-                {
-                    FileTitle = f.FileTitle,
-                    FilePath = f.FilePath,
-                    UploadedAt = f.UploadedAt
-                }).ToList()
+               
             };
 
           //  Console.WriteLine(viewModel);
+
+
+            var topics = _context.JournalTopics.ToList();
+           
+            ViewBag.topics = topics;
+
 
             return PartialView("_ProjectCardPartial", viewModel); 
         }
@@ -1124,9 +1270,10 @@ namespace ERP.Controllers
                 AdvanceRate = project.AdvanceRate,
                 EmployeePayment = project.EmployeePayment,
                 Description = project.Description,
-                Journal = project.Journal,
                 SelectedClientId = project.ClientId,
                 SelectedEmployeeId = project.EmployeeId,
+                IsDocumentsComleted = project.IsDocumentsComleted ?? false,
+                LayoutsRequired = project.LayoutsRequired,
                 Items = project.Items.Select(i => new ItemCardViewModel
                 {
                     ItemId = i.ItemId,
@@ -1168,7 +1315,7 @@ namespace ERP.Controllers
                 }).ToList()
             };
 
-            Console.WriteLine(viewModel);
+         // Console.WriteLine(viewModel);
 
             return PartialView("_EditProjectPartial", viewModel);
         }
@@ -1196,22 +1343,40 @@ namespace ERP.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPhotos([FromForm] List<AddPhotosViewModel> photos)
         {
-            //Console.WriteLine("AddPhotos; " + photos.Count);
+            Console.WriteLine("AddPhotos; " + photos.Count);
+            foreach (var p in photos)
+            {
+                Console.WriteLine(p);
+            }
             //Console.WriteLine();
 
             var project = _context.Projects.FirstOrDefault(p => p.ProjectId == photos[0].projectId);
-            var client = _context.Clients.FirstOrDefault(c => c.ClientId == project.ClientId);
-            var sanitizedProjectName = project.ProjectName.Replace(" ", "_").Replace(":", "_");
-            var sanitizedClientName = client.Title.Replace(" ", "_").Replace(":", "_");
+            var note = _context.JournalNotes.FirstOrDefault(n => n.JournalNoteId == photos[0].noteId);
+
+            string uploadsFolder;
+            if (project != null)
+            {
+                Console.WriteLine(project.ProjectName);
+                var client = _context.Clients.FirstOrDefault(c => c.ClientId == project.ClientId);
+                var sanitizedProjectName = project.ProjectName.Replace(" ", "_").Replace(":", "_");
+                var sanitizedClientName = client.Title.Replace(" ", "_").Replace(":", "_");
+                uploadsFolder = Path.Combine(sanitizedClientName, sanitizedProjectName, photos[0].fileType);
+            }
+            else
+            {
+                Console.WriteLine("project is null");
+                uploadsFolder = note.JournalTopicName.Replace(" ", "_").Replace(":", "_");
+            }
+           
 
             foreach (var item in photos)
             {
-                Console.WriteLine(item);
+              //  Console.WriteLine(item);
 
                 if (item.photo != null)
                 {
                     var fileName = item.photo.FileName.Replace(" ", "_").Replace(":", "_");
-                    var uploadsFolder = Path.Combine(sanitizedClientName, sanitizedProjectName, item.fileType);
+
                     Directory.CreateDirectory(Path.Combine("wwwroot", uploadsFolder));
                     var filePath = Path.Combine(uploadsFolder, fileName);
                     using (var stream = new FileStream(Path.Combine("wwwroot", filePath), FileMode.Create))
@@ -1220,6 +1385,7 @@ namespace ERP.Controllers
                     }
                     ProjectFile projectFile = new ProjectFile();
                     projectFile.ProjectId = item.projectId;
+                    projectFile.JournalNoteId = item.noteId;
                     projectFile.ItemId = item.itemPointer == 0 ? null : item.itemPointer;
                     projectFile.FileType = item.fileType;
                     projectFile.FilePath = "\\" + filePath;
@@ -1233,11 +1399,45 @@ namespace ERP.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DeletePhoto()
+        {
+           // Console.WriteLine("DeletePhoto ищем айди в проке запроса. ");
+            int id = 0;
+            Int32.TryParse(Request.Query["id"], out id);
+            Console.WriteLine("DeletePhoto: " + id);
+            try
+            {
+                ProjectFile photo = _context.ProjectFiles.First(i => i.FileId == id);
+
+                //string filePath = Path.Combine("wwwroot", photo.FilePath.TrimStart('/'));
+                //Console.WriteLine(filePath);
+                string fullpath = "wwwroot\\" + photo.FilePath;
+                Console.WriteLine(fullpath);
+
+                if (System.IO.File.Exists(fullpath))
+                {
+                    System.IO.File.Delete(fullpath);
+                }
+                //Console.WriteLine("fullpath");
+                _context.ProjectFiles.Remove(photo);
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { success = true });  
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { message = "Ошибка удаления файла: " + ex.Message });
+            }
+        }
+
+      
         [HttpPut("PutProjectDescription")]
         public IActionResult PutProjectDescription([FromBody] JsonElement data)
         {
             int id = 0;
-            Int32.TryParse(Request.Query["id"], out id);
+            Int32.TryParse(Request.Query["projectId"], out id);
             data.TryGetProperty("description", out JsonElement descriptionElement);
             var description = descriptionElement.GetString();
             //  Console.WriteLine("PutProjectDescription: " + description + ", ID: " + id);
@@ -1251,22 +1451,66 @@ namespace ERP.Controllers
             return Ok(new { message = "Описание обновлено успешно." });
         }
 
-        [HttpPut("PutProjectJournal")]
-        public IActionResult PutProjectJournal([FromBody] JsonElement data)
+
+        [HttpPut("CurrentProjects/PutProjectNote")]
+        public IActionResult PutProjectNote([FromBody] JsonElement data)
         {
             int id = 0;
             Int32.TryParse(Request.Query["id"], out id);
+            int topicId = 0;
+            Int32.TryParse(Request.Query["topicId"], out topicId);
+
+            int projectId = 0;
+            Int32.TryParse(Request.Query["projectId"], out projectId);
+
             data.TryGetProperty("description", out JsonElement descriptionElement);
             var description = descriptionElement.GetString();
-            var project = _context.Projects.Find(id);
-            if (project == null)
+            Console.WriteLine("PutProjectNote");
+            Console.WriteLine(id);
+            Console.WriteLine(topicId);
+            Console.WriteLine(description);
+
+
+            var note = _context.JournalNotes.FirstOrDefault(n => n.JournalNoteId == id);
+            var topic = _context.JournalTopics.Find(topicId);
+
+
+            if (topic == null)
             {
-                return NotFound("Проект не найден.");
+                return NotFound(new { message = "Topic not found." });
             }
-            project.Journal = description;
+            if (note == null)
+            {
+                var isRepeat = _context.JournalNotes.FirstOrDefault(n => n.ProjectId == projectId && n.JournalTopicId == topic.JournalTopicId);
+                if (isRepeat != null)
+                {
+                    isRepeat.JournalNoteDescription += " | " + description;
+                    note = isRepeat;
+                }
+
+                else
+                {
+                    note = new JournalNote();
+                    note.JournalNoteDescription = description;
+                    note.JournalTopicId = topicId;
+                    note.JournalTopicName = topic.JournalTopicName;
+                    note.ProjectId = projectId == 0 ? null : projectId;
+                    _context.JournalNotes.Add(note);
+                }
+            }
+            else
+            {
+                note.JournalNoteDescription = description;
+                note.JournalTopicId = topicId;
+                note.JournalTopicName = topic.JournalTopicName;
+                note.ProjectId = projectId == 0 ? null : projectId;
+            }
             _context.SaveChanges();
-            return Ok(new { message = "Описание обновлено успешно." });
+
+
+            return Ok(new { noteId = note.JournalNoteId });
         }
+
 
         [HttpPut("SetProjectColor")]
         public IActionResult SetProjectColor([FromBody] JsonElement data)
@@ -1306,11 +1550,19 @@ namespace ERP.Controllers
 
                 for(int i = 0; i < files.Count; i++)
                 {
-                   DeleteFile( files[i].FileId);
+                    try
+                    {
+                        DeleteFile(files[i].FileId);
+                    }
+                    catch { }
                 }
                 for (int i = 0; i < items.Count; i++)
                 {
-                    DeleteItem(items[i].ItemId);
+                    try
+                    { 
+                        DeleteItem(items[i].ItemId);
+                    }
+                    catch { }
                 }
                 _context.Projects.Remove(project);
                 _context.SaveChanges();
@@ -1326,14 +1578,16 @@ namespace ERP.Controllers
         [HttpPost]
         public IActionResult DeleteFile()
         {
+
+           // Console.WriteLine("DeleteFile ищем айди в проке запроса. ");
             int id = 0;
             Int32.TryParse(Request.Query["id"], out id);
-            Console.WriteLine("DeleteFile" + id);
+            //Console.WriteLine("DeleteFile" + id);
             try
             {
                 ProjectFile file = _context.ProjectFiles.First(i => i.FileId == id);
                 string fullpath = "wwwroot\\" + file.FilePath;
-                Console.WriteLine(fullpath);
+               // Console.WriteLine(fullpath);
                 System.IO.File.Delete(fullpath);
 
                 _context.ProjectFiles.Remove(file);
@@ -1345,15 +1599,18 @@ namespace ERP.Controllers
                 Console.WriteLine(ex.Message);
                 return BadRequest(new { message = "Ошибка удаления файла: " + ex.Message });
             }
+
         }
         public IActionResult DeleteFile(int id)
-        {    
+        {
+            Console.WriteLine("DeleteFile ищем айди в боди запроса. ");
             try
             {
                 ProjectFile file = _context.ProjectFiles.First(i => i.FileId == id);
                 string fullpath = "wwwroot\\" + file.FilePath;
-                Console.WriteLine(fullpath);
-                System.IO.File.Delete(fullpath);
+                //Console.WriteLine(fullpath);
+                if (System.IO.File.Exists(fullpath))
+                    System.IO.File.Delete(fullpath);
 
                 _context.ProjectFiles.Remove(file);
                 _context.SaveChanges();
@@ -1376,8 +1633,9 @@ namespace ERP.Controllers
             {
                 Item item = _context.Items.First(i => i.ItemId == id);
                 string fullpath = "wwwroot\\" + item.SketchPath;
-                Console.WriteLine(fullpath);
-                System.IO.File.Delete(fullpath);
+               // Console.WriteLine(fullpath);
+                if(System.IO.File.Exists(fullpath))
+                    System.IO.File.Delete(fullpath);
 
                 _context.Items.Remove(item);
                 _context.SaveChanges();
@@ -1392,13 +1650,13 @@ namespace ERP.Controllers
 
         public IActionResult DeleteItem(int id)
         {
-            
             try
             {
                 Item item = _context.Items.First(i => i.ItemId == id);
                 string fullpath = "wwwroot\\" + item.SketchPath;
-                Console.WriteLine(fullpath);
-                System.IO.File.Delete(fullpath);
+                //  Console.WriteLine(fullpath);
+                if (System.IO.File.Exists(fullpath))
+                    System.IO.File.Delete(fullpath);
 
                 _context.Items.Remove(item);
                 _context.SaveChanges();
@@ -1508,95 +1766,41 @@ namespace ERP.Controllers
         public async Task<IActionResult> AddRervizit([FromForm] List<RekvizitViewModel> rekvizits)
         {
             if (!ModelState.IsValid) { return BadRequest(ModelState); }
-            await _outputLock.WaitAsync();
-            try
+            if(rekvizits.Count == 0) { return Ok("файлы реквизитов не изменились"); }
+           
+            Console.WriteLine("---Method: AddRervizit---");
+            Console.WriteLine("files^ " + rekvizits.Count);
+            var sanitizedClientName = rekvizits[0].ClientTitle.Replace(" ", "_").Replace(":", "_");
+            var clientRekvizitFolder = Path.Combine(sanitizedClientName, "rekvizits");
+
+            Directory.CreateDirectory(Path.Combine("wwwroot", clientRekvizitFolder));
+
+            foreach (var item in rekvizits)
             {
-                Console.WriteLine("---Method: AddRervizit---");
-                Console.WriteLine("files^ " + rekvizits.Count);
-                var sanitizedClientName = rekvizits[0].ClientTitle.Replace(" ", "_").Replace(":", "_");
-                var clientRekvizitFolder = Path.Combine(sanitizedClientName, "rekvizits");
-
-                Directory.CreateDirectory(Path.Combine("wwwroot", clientRekvizitFolder));
-
-                foreach (var item in rekvizits)
+                Console.WriteLine($"проект: {item.ClientTitle}, Имя файла: {item.FilePath?.FileName}");
+                if (item.FilePath != null)
                 {
-                    Console.WriteLine($"проект: {item.ClientTitle}, Имя файла: {item.FilePath?.FileName}");
-                    if (item.FilePath != null)
+                    var fileName = item.FilePath.FileName;
+                    var isExist = _context.Requisites.FirstOrDefault(r => r.FileTitle == fileName);
+                    if (isExist != null)
+                        continue;
+
+                    var filePath = Path.Combine(clientRekvizitFolder, fileName);
+                    using (var stream = new FileStream(Path.Combine("wwwroot", filePath), FileMode.Create))
                     {
-                        var fileName = item.FilePath.FileName;
-
-                        var filePath = Path.Combine(clientRekvizitFolder, fileName);
-                        using (var stream = new FileStream(Path.Combine("wwwroot", filePath), FileMode.Create))
-                        {
-                            await item.FilePath.CopyToAsync(stream);
-                        }
-                        Requisite requisite = new Requisite();
-                        requisite.FilePath = "\\" + filePath;
-                        requisite.FileTitle = fileName;
-                        requisite.ClientId = _context.Clients.First(c => c.Title == rekvizits[0].ClientTitle).ClientId;
-                        _context.Requisites.Add(requisite);
-                        _context.SaveChanges();
+                        await item.FilePath.CopyToAsync(stream);
                     }
+                    Requisite requisite = new Requisite();
+                    requisite.FilePath = "\\" + filePath;
+                    requisite.FileTitle = fileName;
+                    requisite.ClientId = _context.Clients.First(c => c.Title == rekvizits[0].ClientTitle).ClientId;
+                    _context.Requisites.Add(requisite);
+                    _context.SaveChanges();
                 }
-                return Ok(new { message = "Файлы загружены" });
             }
-            finally
-            {
-                _outputLock.Release();
-            }
+            return Ok(new { message = "Файлы загружены" });
+          
         }
-
-        //[HttpPost]
-        //[Route("/CurrentProjects/AddRervizit")]
-        //public async Task<IActionResult> AddRervizit([FromForm] string clientTitle, [FromForm] List<IFormFile> files)
-        //{
-        //    if (files == null || files.Count == 0)
-        //    {
-        //        return BadRequest("Файлы не переданы.");
-        //    }
-
-        //    await _outputLock.WaitAsync();
-        //    try
-        //    {
-        //        Console.WriteLine("---Method: AddRervizit---");
-        //        Console.WriteLine("Файлов: " + files.Count);
-
-        //        var sanitizedClientName = clientTitle.Replace(" ", "_").Replace(":", "_");
-        //        var clientRekvizitFolder = Path.Combine("wwwroot", sanitizedClientName, "rekvizits");
-
-        //        Directory.CreateDirectory(clientRekvizitFolder);
-
-        //        foreach (var file in files)
-        //        {
-        //            if (file != null && file.Length > 0)
-        //            {
-        //                var fileName = file.FileName;
-        //                var filePath = Path.Combine(clientRekvizitFolder, fileName);
-
-        //                using (var stream = new FileStream(filePath, FileMode.Create))
-        //                {
-        //                    await file.CopyToAsync(stream);
-        //                }
-
-        //                var requisite = new Requisite
-        //                {
-        //                    FilePath = "\\" + Path.Combine(sanitizedClientName, "rekvizits", fileName),
-        //                    FileTitle = fileName,
-        //                    ClientId = _context.Clients.First(c => c.Title == clientTitle).ClientId
-        //                };
-
-        //                _context.Requisites.Add(requisite);
-        //                _context.SaveChanges();
-        //            }
-        //        }
-
-        //        return Ok(new { message = "Файлы загружены" });
-        //    }
-        //    finally
-        //    {
-        //        _outputLock.Release();
-        //    }
-        //}
 
 
         [HttpGet]
@@ -1676,19 +1880,20 @@ namespace ERP.Controllers
                 client.Title = model.ClientTitle;
                 client.City = model.City;             
                 client.FirstRequstDate = model.FirstContact ?? client.FirstRequstDate;
-                     
 
+            if (model.contacts.Any())
+            {
                 foreach (var c in model.contacts)
                 {
-             //   Console.WriteLine("searchin existing contact .......");
-             //   Console.WriteLine(c.Name);
-               // foreach(var co in clien)
-                var isExist = _context.Contacts.FirstOrDefault(con => con.ContactName == c.Name);
-                if (isExist != null)
-             //   {
-              //      Console.WriteLine( isExist.ContactName + " не пересоздаём" );
-                    continue;
-             //   }
+                    //   Console.WriteLine("searchin existing contact .......");
+                    //   Console.WriteLine(c.Name);
+                    // foreach(var co in clien)
+                    var isExist = _context.Contacts.FirstOrDefault(con => con.ContactName == c.Name);
+                    if (isExist != null)
+                        //   {
+                        //      Console.WriteLine( isExist.ContactName + " не пересоздаём" );
+                        continue;
+                    //   }
                     Contact contact = new Contact();
                     contact.ContactName = c.Name;
                     contact.PhoneNumber = c.Phone;
@@ -1696,16 +1901,19 @@ namespace ERP.Controllers
                     contact.ClientId = client.ClientId;
                     _context.Contacts.Add(contact);
                 }
-               
+            }
+            if (model.address.Any())
+            {
                 foreach (var c in model.address)
                 {
-                if (_context.DeliveryAddresses.FirstOrDefault(del => del.DeliveryAddress1 == c.Address) != null)
-                    continue;
+                    if (_context.DeliveryAddresses.FirstOrDefault(del => del.DeliveryAddress1 == c.Address) != null)
+                        continue;
                     DeliveryAddress address = new();
                     address.DeliveryAddress1 = c.Address;
                     address.ClientId = client.ClientId;
                     _context.DeliveryAddresses.Add(address);
                 }
+            }
                 _context.SaveChanges();
 
                 return Ok();
@@ -1748,8 +1956,14 @@ namespace ERP.Controllers
             string fullpath = "wwwroot\\" + rekvizit.FilePath;
             Console.WriteLine("delete rekvisit: " + fullpath);
             _context.Requisites.Remove(rekvizit);
-            System.IO.File.Delete(fullpath);
             _context.SaveChanges();
+            try
+            {
+                System.IO.File.Delete(fullpath);
+            }
+            catch { }
+            
+            
             return Ok();
         }
 
@@ -1877,6 +2091,11 @@ namespace ERP.Controllers
         {
             Console.WriteLine("--------------Method: AddMaterials-----------");
             string materialName = Request.Query["Materials"];
+
+            var isExist = _context.Materials.FirstOrDefault(m =>m.MaterialName == materialName);
+            if (isExist != null)
+                return BadRequest("уже существует");
+
             Material material = new();
             material.MaterialName = materialName;
             Console.WriteLine(material.MaterialName);
@@ -1892,6 +2111,11 @@ namespace ERP.Controllers
         {
             Console.WriteLine("--------------Method: AddColors-----------");
             string colorName = Request.Query["Colors"];
+
+            var isExist = _context.Colors.FirstOrDefault(m => m.ColorName == colorName);
+            if (isExist != null)
+                return BadRequest("уже существует");
+
             Color color = new();
             color.ColorName = colorName;
             Console.WriteLine(color.ColorName);
@@ -1905,6 +2129,7 @@ namespace ERP.Controllers
         [Route("CurrentProjects/GetMaterials")]
         public IActionResult GetMaterials()
         {
+            Console.WriteLine("GetMaterials");
             return Json(_context.Materials);
         }
 
@@ -1912,8 +2137,120 @@ namespace ERP.Controllers
         [Route("CurrentProjects/GetColors")]
         public IActionResult GetColors()
         {
+            Console.WriteLine("GetColors");
             return Json(_context.Colors);
         }
 
+        [HttpDelete]
+        [Route("CurrentProjects/DeleteMaterials")]
+        public IActionResult DeleteMaterials()
+        {
+            Console.WriteLine("DeleteMaterial");
+            string name = Request.Query["name"];
+
+            var material = _context.Materials.FirstOrDefault(m => m.MaterialName == name);
+            if (material == null)
+                return NotFound();
+
+            _context.Materials.Remove(material);
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("CurrentProjects/DeleteColors")]
+        public IActionResult DeleteColors()
+        {
+
+            Console.WriteLine("DeleteColor");
+            string name = Request.Query["name"];
+
+            var color = _context.Colors.FirstOrDefault(c => c.ColorName == name);
+            if (color == null)
+                return NotFound();
+
+            _context.Colors.Remove(color);
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("CurrentProjects/UpdateMaterials")]
+        public IActionResult UpdateMaterials()
+        {
+            Console.WriteLine("UpdateMaterial");
+            string name = Request.Query["name"];
+            string newName = Request.Query["newName"];
+            if (newName.Length == 0 || newName == null)
+                return BadRequest("новое название не передано");
+
+            var material = _context.Materials.FirstOrDefault(m => m.MaterialName == name);
+            if (material == null)
+                return NotFound();
+
+            material.MaterialName = newName;
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("CurrentProjects/UpdateColors")]
+        public IActionResult UpdateColors()
+        {
+
+            Console.WriteLine("UpdateColor");
+            string name = Request.Query["name"];
+            string newName = Request.Query["newName"];
+            if (newName.Length == 0 || newName == null)
+                return BadRequest("новое название не передано");
+
+            var color = _context.Colors.FirstOrDefault(c => c.ColorName == name);
+            if (color == null)
+                return NotFound();
+
+            color.ColorName = newName;
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetJournalTopics()
+        {
+            Console.WriteLine("GetJournalTopics");
+            var topics = await _context.JournalTopics
+                .Select(t => new { t.JournalTopicId, t.JournalTopicName })
+                .ToListAsync();
+
+            foreach(var topic in topics)
+                Console.WriteLine(topic.JournalTopicName);
+
+            return Json(topics);
+        }
+
+        
+        public IActionResult DeleteJournalNote()
+        {
+
+            Console.WriteLine("DeleteJournalNote");
+            int id = 0;
+            Int32.TryParse(Request.Query["id"], out id);
+            var note = _context.JournalNotes.FirstOrDefault(n => n.JournalNoteId == id);
+            if (note == null) return NotFound();
+            var photos = _context.ProjectFiles.Where(pp => pp.JournalNoteId == id).ToList();
+
+            for (int i = 0; i < photos.Count; i++)
+            {
+                try
+                {
+                    DeleteFile(photos[i].FileId);
+                }
+                catch { }
+            }
+            _context.JournalNotes.Remove(note);
+            _context.SaveChanges();
+
+
+            return  Ok("потрачено");
+        }
     }
 }

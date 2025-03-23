@@ -1,0 +1,8 @@
+﻿
+
+@model ERP.Models.JournalTopic
+
+<form asp-action="AddTopic" id="AddTopicForm" asp-controller="Journal" method="post">
+    <input id="JournalTopicName" asp-for="JournalTopicName" name="JournalTopicName" placeholder="Имя" type="text" required>
+    <button type="submit" id="addEmployee" class="btn btn-primary">Добавить тему</button>
+</form>

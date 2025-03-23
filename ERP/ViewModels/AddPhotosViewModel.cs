@@ -5,14 +5,15 @@ namespace ERP.ViewModels
 {
     public class AddPhotosViewModel
     {     
-      public int projectId {  get; set; }
-      public string fileType { get; set; }
+      public int? projectId {  get; set; }
+      public int? noteId { get; set; }
+      public string? fileType { get; set; }
       public int? itemPointer {  get; set; }
       public  IFormFile photo {  get; set; }
 
         public override string ToString()
         {
-            return $"ProjectId: {projectId}, FileType: {fileType}, ItemPointer: {itemPointer}, Photo: {photo.FileName}";
+            return $"ProjectId: {projectId}, noteId: {noteId} FileType: {fileType}, ItemPointer: {itemPointer}, Photo: {photo.FileName}";
         }
     }
 }

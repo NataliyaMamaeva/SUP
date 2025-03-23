@@ -8,38 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.jQuery.Unobtrusive.Ajax" Version="3.2.6" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
     <PackageReference Include="SkiaSharp" Version="3.116.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
-    <Folder Include="Views\Account\" />
     <Folder Include="Views\ArchiveProjects\" />
     <Folder Include="Views\Home\" />
     <Folder Include="wwwroot\DAB_running\test\журналФото\" />
     <Folder Include="wwwroot\даб_ещё_что_нибудь\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\images\photo_1_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_2_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_3_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_4_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_5_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_6_2024-03-22_10-08-58.jpg" />
-    <None Include="wwwroot\images\photo_7_2024-03-22_10-08-58.jpg" />
   </ItemGroup>
 
 </Project>

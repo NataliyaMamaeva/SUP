@@ -17,7 +17,7 @@ namespace ERP.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -83,15 +83,15 @@ namespace ERP.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Passport")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("ContactId")
                         .HasName("PK__Contact__5C66259B016BAD5B");
@@ -123,6 +123,32 @@ namespace ERP.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("DeliveryAddress", (string)null);
+                });
+
+            modelBuilder.Entity("ERP.Models.EmailConfirmation", b =>
+                {
+                    b.Property<int>("EmailConfirmationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmailConfirmationId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EmailConfirmationId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmailConfirmations");
                 });
 
             modelBuilder.Entity("ERP.Models.Employee", b =>
@@ -308,6 +334,53 @@ namespace ERP.Migrations
                     b.ToTable("ItemType", (string)null);
                 });
 
+            modelBuilder.Entity("ERP.Models.JournalNote", b =>
+                {
+                    b.Property<int>("JournalNoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JournalNoteId"));
+
+                    b.Property<string>("JournalNoteDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("JournalTopicId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("JournalTopicName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("JournalNoteId");
+
+                    b.HasIndex("JournalTopicId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("JournalNotes");
+                });
+
+            modelBuilder.Entity("ERP.Models.JournalTopic", b =>
+                {
+                    b.Property<int>("JournalTopicId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("JournalTopicId"));
+
+                    b.Property<string>("JournalTopicName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("JournalTopicId");
+
+                    b.ToTable("JournalTopics");
+                });
+
             modelBuilder.Entity("ERP.Models.Material", b =>
                 {
                     b.Property<int>("MaterialId")
@@ -337,6 +410,9 @@ namespace ERP.Migrations
 
                     b.Property<decimal?>("AdvanceRate")
                         .HasColumnType("decimal(10, 2)");
+
+                    b.Property<string>("ArchiveAccountEmail")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("ClientId")
                         .HasColumnType("int");
@@ -369,7 +445,10 @@ namespace ERP.Migrations
                     b.Property<bool?>("IsArchived")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Journal")
+                    b.Property<bool?>("IsDocumentsComleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LayoutsRequired")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateOnly>("PaymentDate")
@@ -423,6 +502,9 @@ namespace ERP.Migrations
                     b.Property<int?>("ItemId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("JournalNoteId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ProjectId")
                         .HasColumnType("int");
 
@@ -435,6 +517,8 @@ namespace ERP.Migrations
                         .HasName("PK__ProjectF__6F0F98BF593087A7");
 
                     b.HasIndex("ItemId");
+
+                    b.HasIndex("JournalNoteId");
 
                     b.HasIndex("ProjectId");
 
@@ -789,6 +873,17 @@ namespace ERP.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("ERP.Models.EmailConfirmation", b =>
+                {
+                    b.HasOne("ERP.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("ERP.Models.Employee", b =>
                 {
                     b.HasOne("ERP.Models.Employee", "Boss")
@@ -815,6 +910,21 @@ namespace ERP.Migrations
                         .HasForeignKey("ProjectId")
                         .IsRequired()
                         .HasConstraintName("FK__Item__ProjectId__5441852A");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("ERP.Models.JournalNote", b =>
+                {
+                    b.HasOne("ERP.Models.JournalTopic", "JournalTopic")
+                        .WithMany()
+                        .HasForeignKey("JournalTopicId");
+
+                    b.HasOne("ERP.Models.Project", "Project")
+                        .WithMany("JournalNotes")
+                        .HasForeignKey("ProjectId");
+
+                    b.Navigation("JournalTopic");
 
                     b.Navigation("Project");
                 });
@@ -856,12 +966,18 @@ namespace ERP.Migrations
                         .WithMany()
                         .HasForeignKey("ItemId");
 
+                    b.HasOne("ERP.Models.JournalNote", "JournalNote")
+                        .WithMany("Photos")
+                        .HasForeignKey("JournalNoteId");
+
                     b.HasOne("ERP.Models.Project", "Project")
                         .WithMany("ProjectFiles")
                         .HasForeignKey("ProjectId")
                         .HasConstraintName("FK__ProjectFi__Proje__47DBAE45");
 
                     b.Navigation("Item");
+
+                    b.Navigation("JournalNote");
 
                     b.Navigation("Project");
                 });
@@ -1012,9 +1128,16 @@ namespace ERP.Migrations
                     b.Navigation("Tasks");
                 });
 
+            modelBuilder.Entity("ERP.Models.JournalNote", b =>
+                {
+                    b.Navigation("Photos");
+                });
+
             modelBuilder.Entity("ERP.Models.Project", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("JournalNotes");
 
                     b.Navigation("ProjectFiles");
 

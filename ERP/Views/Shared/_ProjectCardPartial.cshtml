@@ -19,6 +19,8 @@
 
 
 <div class="project_card_div">
+      
+    <input type="hidden" id="projectId" value="@Model.ProjectId" />
      <h2>@Model.ProjectName</h2>
     <div class="action-buttons">
        
@@ -74,6 +76,7 @@
                 <th>Тип</th>
                 <th>Эскиз</th>
                 <th>Тираж</th>
+                <th>Материалы/цвета</th>
                 <th class="item-description">Описание</th>
             </tr>
         </thead>
@@ -85,10 +88,11 @@
                     <td>
                         @if (!string.IsNullOrEmpty(item.SketchPath))
                         {
-                            <img onclick="openGallery(this)" src="@item.SketchPath" alt="Эскиз">
+                            <img class="itemImage" onclick="openGallery(this)" src="@item.SketchPath" alt="Эскиз">
                         }
                     </td>
                     <td>@item.Amount</td>
+                    <td>@item.SelectedMaterials <br /> @item.SelectedColors</td>
                     <td class="item-description"><pre>@item.ItemDescription</pre></td>
                 </tr>
             }
@@ -96,155 +100,107 @@
     </table>
 </div>
 
-<div class="project_card_div">
-    <h3>Макеты</h3>
-    @foreach (var layout in Model.Layouts)
-    {
-        <a class="button" href="@layout.FilePath" download> @layout.FileTitle </a>
-    }
 
-    <h3>Документы</h3>
-    @foreach (var doc in Model.Documents)
+<h3>Макеты</h3>
+@if (Model.LayoutsRequired != null && Model.LayoutsRequired.Length > 0)
+{
+    <label>не добавлены: </label>
+    <input type="text" class="today" id="layoutsRequired" value="@Model.LayoutsRequired" asp-for="LayoutsRequired" placeholder="недобавлены макеты" />
+
+}
+
+@foreach (var layout in Model.Layouts)
+{
+    <a class="button" href="@layout.FilePath" download> @layout.FileTitle </a>
+}
+
+<div class="journal-header-container">
+    <h3>Документы</h3> 
+    @if (Model.IsDocumentsComleted == true)
     {
-        <a class="button" href="@doc.FilePath" download> @doc.FileTitle </a>
+        <div class="monthSalaryCircle greenCircle"></div>
+    }
+    else
+    {
+        <div class="monthSalaryCircle redCircle"></div>
     }
 </div>
+@foreach (var doc in Model.Documents)
+{
+    <a class="button" href="@doc.FilePath" download> @doc.FileTitle </a>
+}
+
+  
 
 <h3>Описание</h3>
-<div class="text_block">
+<div class="text_block_description">
     <textarea onblur="sendCardText('PutProjectDescription', @Model.ProjectId)" oninput="textareaResize(this)">@Model.Description</textarea>
 </div>
 
-<h3>Журнал</h3>
-<div class="text_block journal">
-    <textarea onblur="sendCardText('PutProjectJournal', @Model.ProjectId)" oninput="textareaResize(this)">@Model.Journal</textarea>
-    <div class="journal_images gallery">
-        <img onclick="plusClick('журналФото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
-        @foreach (var photo in Model.JournalPhotos)
-        {
-            <img onclick="openGallery(this)" src="@photo.FilePath" alt="@photo.FileTitle">
-        }
-    </div>
+
+<div class="journal-header-container">
+    <h3>Журнал</h3>
+    <button class="toggle-journal" onclick="toggleJournalNotes(this)">
+        <svg width="36" height="36" viewBox="0 0 24 24">
+            <path d="M6 9l6 6 6-6" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </button>
 </div>
+
+<div class="journal-notes" id="journal-notes">
+
+    @foreach(var note in Model.JournalNotes)
+    {
+        <div class="journal-container">
+            <input type="hidden" id="journalNoteId" value="@note.JournalNoteId" />
+            <!-- Верхняя строка -->
+            <div class="journal-header">
+                <label for="journal-theme">Тема:</label>
+                <select class="topic-select">
+                    <option value="@note.JournalTopicId">@note.JournalTopicName</option>
+                    @foreach(var topic in ViewBag.topics)
+                    {
+                        @if(topic.JournalTopicName == note.JournalTopicName)
+                        {
+                            continue;
+                        }
+                        <option value="@topic.JournalTopicId">@topic.JournalTopicName</option>
+                    }
+                </select>
+                <button class="delete-note-btn" onclick="deleteJournalNote(this)" title="Удалить">
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Контент -->
+            <div class="journal-content">
+                <div class="text_block">
+                    <textarea onblur="sendCardText('PutProjectNote', @note.JournalNoteId)"
+                              oninput="textareaResize(this)"> @note.JournalNoteDescription</textarea>
+                </div>
+
+                <div class="journal_images gallery">
+                    <img onclick="plusClick('журналФото', @Model.ProjectId, @note.JournalNoteId)" class="plus" src="~/plus.jpg" alt="Добавить фото" />
+                    @foreach (var photo in note.Photos)
+                    {
+                        <img onclick="openGallery(this)" data-file-id="@photo.FileId" src="@photo.FilePath" alt="@photo.FileTitle">
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    <button class="add-note-btn" onclick="addJournalNote()">Добавить заметку</button>
+</div>
+
 
 <h3>Галерея</h3>
-<div class="gallery project_card_div">
-    <img onclick="plusClick('фото', @Model.ProjectId)" class="plus" src="~/images/плюсик.jpg" />
+<div class="gallery gallery-photo project_card_div">
+    <img onclick="plusClick('фото', @Model.ProjectId)" class="plus" src="~/plus.jpg" />
     @foreach (var photo in Model.Gallery)
     {
-        <img onclick="openGallery(this)" src="@photo.FilePath" alt="@photo.FileTitle">
+        <img onclick="openGallery(this)"  data-file-id="@photo.FileId"  src="@photo.FilePath" alt="@photo.FileTitle">
     }
 </div>
 
-<script>
-
-
-
-    function openGallery(image) {
-       
-        var gallery = image.closest('.gallery');
-        var images = gallery.querySelectorAll('img');
-
-        //// Массив с путями к полноразмерным изображениям (например, заменим 'small' на 'large' в путях)
-        //var imagePaths = Array.from(images).map(function (img) {
-        //    return img.src.replace('small', 'large'); // Предполагаем, что полноразмерные изображения имеют другой суффикс
-        //});
-
-        var imagePaths = Array.from(images).map(function (img) {
-            return img.src;
-        });
-        // $('#gallery').css('visibility', 'visible');
-        // $('.popup_before').css('visibility', 'visible');
-
-        // $('.popup_before').click(function () {
-        //     $('#gallery').css('visibility', 'hidden');
-        //     $('.popup_before').css('visibility', 'hidden');
-        // });
-
-        // Создаём модальное окно
-        var modal = document.createElement('div');
-        modal.classList.add('modal');
-        modal.style.position = 'fixed';
-        modal.style.top = 0;
-        modal.style.left = 0;
-        modal.style.width = '100%';
-        modal.style.height = '100%';
-        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.zIndex = 1000;
-
-        // Добавляем кнопки для навигации по изображениям
-        var prevButton = document.createElement('button');
-        prevButton.textContent = '';
-        prevButton.style.position = 'absolute';
-        prevButton.style.left = '20px';
-        prevButton.style.fontSize = '2em';
-
-        prevButton.style.color = 'white';
-        prevButton.style.backgroundColor = 'transparent';
-        prevButton.style.border = 'none';
-        prevButton.style.cursor = 'pointer';
-
-        var nextButton = document.createElement('button');
-        nextButton.textContent = '';
-        nextButton.style.position = 'absolute';
-        nextButton.style.right = '20px';
-        nextButton.style.fontSize = '2em';
-        nextButton.style.color = 'white';
-        nextButton.style.backgroundColor = 'transparent';
-        nextButton.style.border = 'none';
-        nextButton.style.cursor = 'pointer';
-
-        var modalImage = document.createElement('img');
-        modalImage.src = image.src.replace('small', 'large');
-        modalImage.style.maxWidth = '90%';
-        modalImage.style.maxHeight = '90%';
-        modalImage.style.objectFit = 'contain';
-
-        modal.appendChild(modalImage);
-        modal.appendChild(prevButton);
-        modal.appendChild(nextButton);
-
-        //$('#gallery').append(modal);
-        document.body.appendChild(modal);
-
-      
-        var currentIndex = imagePaths.indexOf(modalImage.src);
-
-        function showImage(index) {
-            if (index < 0) {
-                index = imagePaths.length - 1;
-            } else if (index >= imagePaths.length) {
-                index = 0; 
-            }
-            modalImage.src = imagePaths[index];
-            currentIndex = index;
-        }
-
-        prevButton.addEventListener('click', function () {
-            showImage(currentIndex - 1);
-        });
-
-        nextButton.addEventListener('click', function () {
-            showImage(currentIndex + 1);
-        });
-
-        // Закрытие модального окна при клике на его фон
-        modal.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                document.body.removeChild(modal);
-            }
-        });
-
-        // Закрытие модального окна при нажатии на клавишу Escape
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                document.body.removeChild(modal);
-            }
-        });
-    }
-
-
-</script> 

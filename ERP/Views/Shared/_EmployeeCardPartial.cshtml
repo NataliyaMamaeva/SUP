@@ -1,8 +1,17 @@
-﻿
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ErpUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var employeeId = currentUser?.EmployeeId;
+    var employeeName = currentUser?.UserName;
+}
+
 
 @model Employee
 
 <form asp-action="UpdateEmployee" asp-controller="CurrentProjects" method="post" >
+   
     <input type="hidden" asp-for="EmployeeId" />
     <h3>@Model.EmployeeName</h3>
     <div>
@@ -73,7 +82,10 @@
         }
     </div>
     <button type="submit" >Сохранить</button>
-    <button type="button" onclick="fireEmployee('@Model.EmployeeId')" class="btn btn-danger red">Уволить</button>
+    @if (User.IsInRole("Boss"))
+    {     
+        <button type="button" onclick="fireEmployee('@Model.EmployeeId')" class="btn btn-danger red">Уволить</button>
+    }
 
 </form>
 @* 
