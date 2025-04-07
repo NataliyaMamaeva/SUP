@@ -134,7 +134,7 @@
 
 <h3>Описание</h3>
 <div class="text_block_description">
-    <textarea onblur="sendCardText('PutProjectDescription', @Model.ProjectId)" oninput="textareaResize(this)">@Model.Description</textarea>
+    <textarea onblur="sendCardTextDescription('PutProjectDescription', @Model.ProjectId)">@Model.Description</textarea>
 </div>
 
 
@@ -177,8 +177,7 @@
             <!-- Контент -->
             <div class="journal-content">
                 <div class="text_block">
-                    <textarea onblur="sendCardText('PutProjectNote', @note.JournalNoteId)"
-                              oninput="textareaResize(this)"> @note.JournalNoteDescription</textarea>
+                    <textarea onblur="sendCardTextJournal('PutProjectNote', @note.JournalNoteId)"> @note.JournalNoteDescription</textarea>
                 </div>
 
                 <div class="journal_images gallery">

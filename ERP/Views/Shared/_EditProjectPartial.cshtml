@@ -14,6 +14,10 @@
             <input type="date" asp-for="Deadline" id="deadLine" class="form-control">
         </div>
         <div style="display:inline;">
+            <label for="eventDate" class="form-label">Дата мероприятия</label>
+            <input type="date" asp-for="EventDate" id="eventDate" class="form-control">
+        </div>
+        <div style="display:inline;">
             <label for="paymentDate" class="form-label">Дата предоплаты</label>
             <input type="date" asp-for="PaymentDate" id="paymentDate" class="form-control">
         </div>
@@ -142,14 +146,17 @@
     @if (Model != null)
     {
         <h3>Макеты ( общий | фрез | фанера | пластик | коробки )</h3>
-       
+
+        <label>не добавлены: </label>
+        <input type="text" class="today" id="layoutsRequiredEdit" value="@Model.LayoutsRequired" asp-for="LayoutsRequired" placeholder="не добавлены макеты" />
+
         <table class="table table-dark table-striped table-bordered text-center align-middle files">
             <thead>
                 <tr>
                     <th>Название</th>
                     <th>Файл</th>
                     <th>Загружено</th>
-                    <th>Действия</th>
+                    <th>Удалить</th>
                 </tr>
             </thead>
             <tbody>
@@ -160,24 +167,18 @@
                         <td><a href="@layout.FilePath" target="_blank">Скачать</a></td>
                         <td>@layout.UploadedAt.ToString("dd.MM.yyyy HH:mm")</td>
                         <td>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile(@layout.FileId)">Удалить</button>
+                            <button type="button" class="btn btn-small red" onclick="deleteFile(@layout.FileId, this)">
+                                <svg width="24" height="24" viewBox="0 0 24 24">
+                                    <path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
         <input type="file" class="form-control" id="ProjectFiles" name="NewProjectFiles" multiple>
-        @if (Model.LayoutsRequired != null && Model.LayoutsRequired.Length > 0)
-        {
-            <input type="text" class="today" id="layoutsRequired" value="@Model.LayoutsRequired" asp-for="LayoutsRequired" placeholder="не добавлены макеты" />
-
-        }
-        else
-        {
-            <input type="text" id="layoutsRequired" value="@Model.LayoutsRequired" asp-for="LayoutsRequired" placeholder="не добавлены макеты" />
-
-        }
-
+      
         <div class="journal-header-container header">
             <h3>Документы</h3>
             <input type="checkbox" style="width: min-content;" value="@Model.IsDocumentsComleted" id="isDocumentsComleted" asp-for="IsDocumentsComleted" />
@@ -188,7 +189,7 @@
                     <th>Название</th>
                     <th>Файл</th>
                     <th>Загружено</th>
-                    <th>Действия</th>
+                    <th>Удалить</th>
                 </tr>
             </thead>
             <tbody>
@@ -199,7 +200,11 @@
                         <td><a href="@document.FileId" target="_blank">Скачать</a></td>
                         <td>@document.UploadedAt.ToString("dd.MM.yyyy HH:mm")</td>
                         <td>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteFile(@document.FileId)">Удалить</button>
+                            <button type="button" class="btn btn-small red" onclick="deleteFile(@document.FileId, this)">
+                                <svg width="24" height="24" viewBox="0 0 24 24">
+                                    <path d="M3 6h18M9 6v12m6-12v12M5 6l1 14h12l1-14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
                         </td>
                     </tr>
                 }
@@ -212,3 +217,9 @@
     <button type="button" style="margin-top: 40px;" onclick="sendProjectData('edit')" class="btn btn-success">СОХРАНИТЬ ИЗМЕНЕНИЯ</button>
     <button type="button" onclick="deleteProject('@Model.ProjectId')" class="btn btn-danger red">УДАЛИТЬ ПРОЕКТ</button>
 </form>
+
+<script>
+     $('#layoutsRequiredEdit').on('input', function() {
+        console.log($(this).val());  // Проверьте, что здесь выводится актуальное значение
+    });
+</script>

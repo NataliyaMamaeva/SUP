@@ -32,6 +32,7 @@ using System.Drawing.Imaging;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.DotNet.Scaffolding.Shared;
 using System.Runtime;
+using System.Security.Cryptography;
 
 
 namespace ERP.Controllers
@@ -51,7 +52,7 @@ namespace ERP.Controllers
             _context = context;
             _yandexSettings = yandexSettings.Value;
             _httpClient = httpClient;
-            _protector = provider.CreateProtector("YandexTokenProtector");
+            _protector = provider.CreateProtector("");
 
         }
 
@@ -330,7 +331,18 @@ namespace ERP.Controllers
                 Console.WriteLine("прошли запись в архив");
                 await Task.Delay(500);
 
-                string uploadResult = await UploadToYandexDiskAsync(archivePath, clientTitle, _protector.Unprotect(account.AccessToken));
+                string decryptedToken;
+                try
+                {
+                    decryptedToken = _protector.Unprotect(account.AccessToken);
+                }
+                catch (CryptographicException)
+                {
+                    Console.WriteLine("Ошибка расшифровки");
+                    decryptedToken = account.AccessToken;
+                }
+
+                string uploadResult = await UploadToYandexDiskAsync(archivePath, clientTitle, decryptedToken);
                 if (!uploadResult.StartsWith("Файл загружен на Яндекс.Диск.") && !uploadResult.Contains("Файл уже существует"))
                 {
                     Console.WriteLine(uploadResult);

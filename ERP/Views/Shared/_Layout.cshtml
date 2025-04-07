@@ -12,6 +12,10 @@
 <body>
     <header>
         <div class="header">
+            @if (User.IsInRole("Boss"))
+            {
+                <a class="button" asp-controller="Statistics" asp-action="StatisticsView">Статистика по направлениям</a>
+            }
             <a class="button" asp-controller="Journal" asp-action="Topics">Журнал по темам</a>
             <a class="button" asp-controller="CurrentProjects" asp-action="Index">Текущие проекты</a>
             <a class="button" asp-controller="ArchiveProjects" asp-action="ArchiveProjects">Архив</a>

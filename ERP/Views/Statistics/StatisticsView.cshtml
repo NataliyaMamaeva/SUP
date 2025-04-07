@@ -1,0 +1,137 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="filters header">
+    <select>
+        <option value="value">Тип</option>
+         <option value="value">Материал</option>
+        <option value="value">Тираж</option>
+    </select>
+    <label>начало периода</label>
+    <input type="date" />
+    <label>конец периода</label>
+    <input type="date" />
+
+</div>
+<table class="table table-dark table-striped table-bordered text-center align-middle items">
+    <thead>
+        <tr>
+            <th>Группа</th>
+            <th>Оборот</th>
+            <th>Затраты</th>
+            <th>Выручка</th>
+            <th>Маржа</th>
+        </tr>
+    </thead>
+</table>
+
+<div class="clients">
+ 
+    <div class="client-container">
+        <div class="header client-header" onclick="toggleProjects(this)">
+            <table class="table table-dark table-striped table-bordered text-center align-middle items">
+                <tbody>
+                    <tr>
+                        <td>Медали</td>
+                        <td>300 000</td>
+                        <td>170 000</td>
+                        <td>130 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="client-details hidden">
+            <table class="table table-dark table-striped table-bordered text-center align-middle items">
+               @*  <thead>
+                    <tr>
+                        <th>Группа</th>
+                        <th>Оборот</th>
+                        <th>Затраты</th>
+                        <th>Выручка</th>
+                        <th>Маржа</th>
+                    </tr>
+                </thead> *@
+                <tbody>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="client-container">
+        <div class="header client-header" onclick="toggleProjects(this)">
+            <table class="table table-dark table-striped table-bordered text-center align-middle items">
+                <tbody>
+                    <tr>
+                        <td>Статуэтки</td>
+                        <td>300 000</td>
+                        <td>170 000</td>
+                        <td>130 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="client-details hidden">
+            <table class="table table-dark table-striped table-bordered text-center align-middle items">
+                <tbody>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                    <tr>
+                        <td>Проект имя</td>
+                        <td>50 000</td>
+                        <td>30 000</td>
+                        <td>20 000</td>
+                        <td> 40 % </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</div>
+
+
+
+
+<script>
+    function toggleProjects(header) {
+        const details = header.nextElementSibling;
+        details.classList.toggle('hidden');
+    }
+</script>

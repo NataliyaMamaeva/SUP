@@ -790,8 +790,8 @@ async function plusClick(fileType, id, noteId) {
     textBlock.classList.add("text_block");
 
     var textarea = document.createElement("textarea");
-        textarea.setAttribute("oninput", "textareaResize(this)");
-        textarea.setAttribute("onblur", "sendCardText('PutProjectNote', null)");
+       // textarea.setAttribute("oninput", "textareaResize(this)");
+        textarea.setAttribute("onblur", "sendCardTextJournal('PutProjectNote', null)");
     textBlock.appendChild(textarea);
 
     var gallery = document.createElement("div");
@@ -880,16 +880,18 @@ function textareaResize(textarea) {
     /*textarea.style.height = "auto"; */
     textarea.style.height = textarea.scrollHeight + "px";
 }
-function sendCardText(action, noteId) {
+function sendCardTextDescription(action, noteId) {
     const textarea = event.target;
     const description = textarea.value;
     let container = textarea.closest(".journal-container"); // Ищем родительский .journal-container
-    let topicSelect = container.querySelector(".topic-select"); // Находим первый select в этом контейнере
+    let topicSelect = null;
 
-
-    console.log(container);
-    console.log(topicSelect);
-
+    if (container) {
+        let topicSelect = container.querySelector(".topic-select"); // Находим первый select в этом контейнере
+        console.log(container);
+        console.log(topicSelect);
+    }
+ 
     let selectedTopicId = topicSelect ? topicSelect.value : null;
 
     //var projectIdElement = document.querySelector('#projectId');
@@ -949,6 +951,77 @@ function sendCardText(action, noteId) {
             console.error("Ошибка:", error);
         });
 }
+
+
+function sendCardTextJournal(action, noteId) {
+    const textarea = event.target;
+    const description = textarea.value;
+    let container = textarea.closest(".journal-container"); // Ищем родительский .journal-container
+  
+    let topicSelect = container.querySelector(".topic-select"); // Находим первый select в этом контейнере
+    console.log(container);
+    console.log(topicSelect);
+   
+    let selectedTopicId = topicSelect ? topicSelect.value : null;
+
+    //var projectIdElement = document.querySelector('#projectId');
+    //let projectInput = container.querySelector(".note-projectId"); 
+    //let projectInputData = projectInput.dataset.projectId;
+    //console.log(projectInputData);
+
+    //var projectId = projectIdElement ? projectIdElement.value : (projectInputData ? projectInputData : null);
+
+
+    var projectIdElement = document.querySelector('#projectId');
+    var projectId;
+
+    if (projectIdElement) {
+        projectId = projectIdElement.value;
+    } else {
+        let projectInput = container.querySelector(".note-projectId");
+        let projectInputData = projectInput ? projectInput.dataset.projectId : null;
+        projectId = projectInputData ? projectInputData : null;
+    }
+
+    console.log(projectId);
+
+
+
+    console.log("sendCardText: " + description);
+    //  console.log(JSON.stringify({ description }));
+
+    console.log(`/CurrentProjects/${action}?id=${noteId}&topicId=${selectedTopicId}&projectId=${projectId}`);
+
+    fetch(`/CurrentProjects/${action}?id=${noteId}&topicId=${selectedTopicId}&projectId=${projectId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ description })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Ошибка при отправке данных на сервер");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Успешно отправлено:", data);
+
+            // Если заметка новая и у неё не было ID, обновляем скрытый input
+            if (!noteId && data.noteId) {
+                var note = textarea.closest(".journal-container");
+                let hiddenInput = note.querySelector('input[type="hidden"]');
+
+                hiddenInput.value = data.noteId;
+                console.log("Присвоен новый ID заметке:", data.noteId);
+            }
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+        });
+}
+
 
 
 
@@ -2003,11 +2076,20 @@ async function sendProjectData(method) {
     projectData.append('ProjectName', $('#projectName').val());
     projectData.append('ProjectId', $('#ProjectIdInput').val() || 0);
     projectData.append('Deadline', $('#deadLine').val());
+    projectData.append('EventDate', $('#eventDate').val());
     projectData.append('ClientId', $('#select-Clients').val());
     projectData.append('EmployeeId', $('#select-Employees').val() || 0);
     projectData.append('EmployeePayment', $('#EmployeePaymentInput').val());
     projectData.append('PaymentDate', $('#paymentDate').val());
-    projectData.append('LayoutsRequired', $('#layoutsRequired').val());
+
+    if (method == "add") {
+        projectData.append('LayoutsRequired', $('#layoutsRequired').val());
+    }
+    else
+    {
+        projectData.append('LayoutsRequired', $('#layoutsRequiredEdit').val());
+    }
+    
 
     if ($('#isDocumentsComleted').prop('checked')) {
         projectData.append('IsDocumentsComleted', true);
@@ -2153,7 +2235,7 @@ async function sendProjectData(method) {
     });
     if (docsResponse.ok) {
         console.log('доки загружено');
-      //  window.location.href = '/CurrentProjects/Index';
+         window.location.href = '/CurrentProjects/Index';
     }
     if (!docsResponse.ok) {
         throw new Error('Ошибка при загрузке файлов проекта.');

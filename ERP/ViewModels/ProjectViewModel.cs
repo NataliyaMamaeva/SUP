@@ -5,6 +5,7 @@
         public int? ProjectId { get; set; }
         public string? ProjectName { get; set; }
         public DateOnly Deadline { get; set; }
+        public DateOnly? EventDate { get; set; }
         public int? ClientId { get; set; }
         public int? EmployeeId { get; set; }
         public decimal? EmployeePayment { get; set; }

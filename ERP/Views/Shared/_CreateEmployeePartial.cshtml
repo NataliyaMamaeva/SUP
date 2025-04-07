@@ -55,3 +55,29 @@
 
     <button type="submit" id="addEmployee" class="btn btn-primary">Добавить сотрудника</button>
 </form>
+
+
+<script>
+    document.getElementById("AddEmployeeForm").addEventListener("submit", async function (event) {
+        event.preventDefault(); // Останавливаем стандартную отправку формы
+
+        let form = event.target;
+        let formData = new FormData(form);
+
+        let response = await fetch("/Account/AddEmployee", {
+            method: "POST",
+            body: formData
+        });
+
+        let result = await response.json(); // Получаем JSON-ответ от сервера
+
+        alert(result.message); // Показываем ответ
+
+        if (result.success) {
+            form.reset();
+            location.reload();
+        }
+    });
+</script>
+
+

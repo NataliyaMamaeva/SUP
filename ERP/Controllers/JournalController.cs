@@ -41,33 +41,108 @@ namespace ERP.Controllers
 
 
 
+        //[HttpPost]
+        //[Route("Journal/AddTopic")]
+        //public IActionResult AddTopic([FromForm] JournalTopic topic )
+        //{
+        //    Console.WriteLine("--------------Method: AddTopic-----------");
+        //    //string materialName = Request.Query["Materials"];
+        //    Console.WriteLine(  topic );
+
+        //    //var isExist = _context.JournalTopics
+        //    //  .AsEnumerable() // Загружаем в память (иначе EF не поддержит FuzzySharp)
+        //    //  .FirstOrDefault(m => Fuzz.PartialRatio(m.JournalTopicName, topic.JournalTopicName) >= 95);
+
+        //    //var isExist = _context.JournalTopics
+        //    //    .FirstOrDefault(m => m.JournalTopicName.Trim().ToLower() == topic.JournalTopicName.Trim().ToLower());
+
+        //    var isExist = _context.JournalTopics
+        //        .FirstOrDefault(m => m.JournalTopicName == topic.JournalTopicName);
+        //    if (isExist != null)
+        //        return BadRequest("уже существует");
+
+        //    JournalTopic topicNew = new();
+        //    topicNew.JournalTopicName = topic.JournalTopicName;
+
+        //    _context.JournalTopics.Add(topicNew);
+        //    _context.SaveChanges();
+
+        //    return Ok("Topics успешно загружены.");
+        //}
+
+
+
+
+        //[HttpPost]
+        //[Route("Journal/AddTopic")]
+        //public IActionResult AddTopic([FromForm] JournalTopic topic)
+        //{
+        //    Console.WriteLine("--------------Method: AddTopic-----------");
+        //    Console.WriteLine(topic);
+
+        //    var isExist = _context.JournalTopics
+        //      .AsEnumerable() // Загружаем в память (иначе EF не поддержит FuzzySharp)
+        //      .FirstOrDefault(m => Fuzz.PartialRatio(m.JournalTopicName, topic.JournalTopicName) >= 95);
+
+        //    if (isExist != null)
+        //    {
+        //        TempData["Message"] = "Тема уже существует!";
+        //        return RedirectToAction("Topics"); // Название страницы, куда редиректим
+        //    }
+
+        //    JournalTopic topicNew = new() { JournalTopicName = topic.JournalTopicName };
+        //    _context.JournalTopics.Add(topicNew);
+        //    _context.SaveChanges();
+
+        //    TempData["Message"] = "Тема успешно добавлена!";
+        //    return RedirectToAction("Topics"); // Название страницы, куда редиректим
+        //}
+
+
+        //[HttpPost]
+        //[Route("Journal/AddTopic")]
+        //public IActionResult AddTopic([FromForm] JournalTopic topic)
+        //{
+        //    Console.WriteLine("--------------Method: AddTopic-----------");
+        //    Console.WriteLine(topic);
+
+        //    var isExist = _context.JournalTopics.FirstOrDefault(m => m.JournalTopicName == topic.JournalTopicName);
+        //    if (isExist != null)
+        //    {
+        //        ViewData["Message"] = "Тема уже существует!";
+        //        return Ok(); // Остаёмся на той же странице
+        //    }
+
+        //    JournalTopic topicNew = new() { JournalTopicName = topic.JournalTopicName };
+        //    _context.JournalTopics.Add(topicNew);
+        //    _context.SaveChanges();
+
+        //    ViewData["Message"] = "Тема успешно добавлена!";
+        //    return Ok(); // Остаёмся на той же странице
+        //}
+
         [HttpPost]
         [Route("Journal/AddTopic")]
-        public IActionResult AddTopic([FromForm] JournalTopic topic )
+        public IActionResult AddTopic([FromForm] JournalTopic topic)
         {
-            Console.WriteLine("--------------Method: AddTopic-----------");
-            //string materialName = Request.Query["Materials"];
-            Console.WriteLine(  topic );
+            string normTopic = topic.JournalTopicName.Replace(".", "").Replace("-", "").Replace("_", "").ToLower();
 
-            //var isExist = _context.JournalTopics
-            //  .AsEnumerable() // Загружаем в память (иначе EF не поддержит FuzzySharp)
-            //  .FirstOrDefault(m => Fuzz.PartialRatio(m.JournalTopicName, topic.JournalTopicName) >= 95);
 
-            //var isExist = _context.JournalTopics
-            //    .FirstOrDefault(m => m.JournalTopicName.Trim().ToLower() == topic.JournalTopicName.Trim().ToLower());
 
             var isExist = _context.JournalTopics
-                .FirstOrDefault(m => m.JournalTopicName == topic.JournalTopicName);
+              .AsEnumerable() // Загружаем в память (иначе EF не поддержит FuzzySharp)
+              .FirstOrDefault(m => Fuzz.TokenSortRatio(m.JournalTopicName.Replace(".", "").Replace("-", "").Replace("_", "").ToLower(), normTopic) >= 90);
+
             if (isExist != null)
-                return BadRequest("уже существует");
+            {
+                return Json(new { success = false, message = "Тема уже существует!" });
+            }
 
-            JournalTopic topicNew = new();
-            topicNew.JournalTopicName = topic.JournalTopicName;
-
+            JournalTopic topicNew = new() { JournalTopicName = topic.JournalTopicName };
             _context.JournalTopics.Add(topicNew);
             _context.SaveChanges();
 
-            return Ok("Topics успешно загружены.");
+            return Json(new { success = true, message = "Тема успешно добавлена!" });
         }
     }
 }

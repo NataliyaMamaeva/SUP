@@ -2,7 +2,65 @@
 
 @model ERP.Models.JournalTopic
 
+
+
 <form asp-action="AddTopic" id="AddTopicForm" asp-controller="Journal" method="post">
     <input id="JournalTopicName" asp-for="JournalTopicName" name="JournalTopicName" placeholder="Имя" type="text" required>
     <button type="submit" id="addEmployee" class="btn btn-primary">Добавить тему</button>
 </form>
+
+
+<script>
+    document.getElementById("AddTopicForm").addEventListener("submit", async function (event) {
+        event.preventDefault(); // Останавливаем стандартную отправку формы
+
+        let form = event.target;
+        let formData = new FormData(form);
+
+        let response = await fetch("/Journal/AddTopic", {
+            method: "POST",
+            body: formData
+        });
+
+        let result = await response.json(); // Получаем JSON-ответ от сервера
+
+        alert(result.message); // Показываем ответ
+
+        if (result.success) {
+            form.reset(); 
+            location.reload();
+        }
+    });
+</script>
+
+
+
+@* 
+@if (TempData["Message"] != null)
+{
+     <script>
+        setTimeout(function() {
+            alert(decodeURIComponent('@Uri.EscapeDataString(TempData["Message"].ToString())'));
+        }, 100);
+    </script>
+}
+
+<form asp-action="AddTopic" id="AddTopicForm" asp-controller="Journal" method="post">
+    <input id="JournalTopicName" asp-for="JournalTopicName" name="JournalTopicName" placeholder="Имя" type="text" required>
+    <button type="submit" id="addEmployee" class="btn btn-primary">Добавить тему</button>
+</form> *@
+
+@* 
+ @if (TempData["Message"] != null)
+{
+    <script>
+        setTimeout(function() {
+            alert(decodeURIComponent('@Uri.EscapeDataString(TempData["Message"].ToString())'));
+        }, 100);
+    </script>
+}
+<form asp-action="AddTopic" id="AddTopicForm" asp-controller="Journal" method="post">
+    <input id="JournalTopicName" asp-for="JournalTopicName" name="JournalTopicName" placeholder="Имя" type="text" required>
+    <button type="submit" class="btn btn-primary">Добавить тему</button>
+</form>
+ *@

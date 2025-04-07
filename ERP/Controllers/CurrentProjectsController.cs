@@ -35,14 +35,14 @@ namespace ERP.Controllers
         {
             _userManager = userManager;
             _context = context;
-            _protector = provider.CreateProtector("PassportShifre");
+            _protector = provider.CreateProtector("");
         }
 
         //------------------------------------------------------view без модели--------------------------------------------------//
         public ActionResult Index() { return View(); }
         public IActionResult CreateEmployeePartial() {
 
-            var bosses = _context.Employees.ToList();      
+            var bosses = _context.Employees.Where(e => e.IsFired != true).ToList();      
             var positions = new List<string> { "Boss", "Master", "Designer", "PhoneManager" };
             ViewBag.Bosses = bosses;
             ViewBag.Positions = positions;
@@ -275,30 +275,6 @@ namespace ERP.Controllers
             List<string> positions = new List<string>() { "Boss", "Master", "Designer", "PhoneManager" };
             return Json(positions);
         }
-
-        //public IActionResult FireEmployee (int id)
-        //{
-
-
-        //    Console.WriteLine("FireEmployee");
-        //    Console.WriteLine(id);
-        //    var employee = _context.Employees.FirstOrDefault(e => e.EmployeeId ==  id);
-        //    if (employee == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    employee.IsFired = true;
-        //    var user = _userManager.FindByEmailAsync(employee.Email);
-        //    Console.WriteLine(user);
-        //    //if (user != null)
-        //    //    _context.Users.Remove(user);
-
-
-        //    _context.SaveChanges();
-
-        //    return Ok();
-        //}
 
         public async Task<IActionResult> FireEmployee(int id)
         {
@@ -746,6 +722,7 @@ namespace ERP.Controllers
                 {
                     ProjectName = model.ProjectName,
                     Deadline = model.Deadline,
+                    EventDate = model.EventDate,
                     ClientId = model.ClientId,
                     EmployeeId = model.EmployeeId != 0 ? model.EmployeeId : null,
                     EmployeePayment = model.EmployeePayment,
@@ -766,6 +743,7 @@ namespace ERP.Controllers
                 project = await _context.Projects.FirstAsync(p => p.ProjectId == model.ProjectId);
                 project.ProjectName = model.ProjectName;
                 project.Deadline = model.Deadline;
+                project.EventDate = model.EventDate;
                 project.IsDocumentsComleted = model.IsDocumentsComleted;
                 project.LayoutsRequired = model.LayoutsRequired;
                 if (project.ClientId != model.ClientId)
@@ -1433,14 +1411,16 @@ namespace ERP.Controllers
         }
 
       
-        [HttpPut("PutProjectDescription")]
+        [HttpPut("/CurrentProjects/PutProjectDescription")]
         public IActionResult PutProjectDescription([FromBody] JsonElement data)
         {
             int id = 0;
             Int32.TryParse(Request.Query["projectId"], out id);
             data.TryGetProperty("description", out JsonElement descriptionElement);
             var description = descriptionElement.GetString();
-            //  Console.WriteLine("PutProjectDescription: " + description + ", ID: " + id);
+
+        //    Console.WriteLine("PutProjectDescription: " + description + ", ID: " + id);
+
             var project = _context.Projects.Find(id);
             if (project == null)
             {
@@ -1587,8 +1567,9 @@ namespace ERP.Controllers
             {
                 ProjectFile file = _context.ProjectFiles.First(i => i.FileId == id);
                 string fullpath = "wwwroot\\" + file.FilePath;
-               // Console.WriteLine(fullpath);
-                System.IO.File.Delete(fullpath);
+                // Console.WriteLine(fullpath);
+                if (System.IO.File.Exists(fullpath))
+                    System.IO.File.Delete(fullpath);
 
                 _context.ProjectFiles.Remove(file);
                 _context.SaveChanges();

@@ -27,8 +27,17 @@
     <Folder Include="Data\Migrations\" />
     <Folder Include="Views\ArchiveProjects\" />
     <Folder Include="Views\Home\" />
+    <Folder Include="wwwroot\DAB runningREKVIZITS\" />
     <Folder Include="wwwroot\DAB_running\test\журналФото\" />
+    <Folder Include="wwwroot\DAB_running\ДАБ_осень_и_зима\" />
+    <Folder Include="wwwroot\DAB_running\Даб_подставки\files\" />
+    <Folder Include="wwwroot\DAB_running\Даб_подставки\журналФото\" />
+    <Folder Include="wwwroot\DAB_running\Даб_подставки\фото\" />
+    <Folder Include="wwwroot\nameClient4\rekvizits\" />
+    <Folder Include="wwwroot\test\Sketches\" />
+    <Folder Include="wwwroot\Бека_Рус\Бека_рус\" />
     <Folder Include="wwwroot\даб_ещё_что_нибудь\" />
+    <Folder Include="wwwroot\Тест\rekvizits\" />
   </ItemGroup>
 
 </Project>

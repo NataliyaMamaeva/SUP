@@ -66,6 +66,8 @@ textarea {
     color: white;
     padding: 14px;
     min-height: 50px; /* Минимальная высота */
+    height: max-content; /* Автоматическая высота */
+    /*overflow-y: hidden;*/ /* Скрыть полосу прокрутки */
 }
 
 /*select {
@@ -223,6 +225,10 @@ input {
 
 .red{
     background-color:darkred;
+}
+
+.btn-small {
+    width: min-content;
 }
 
 .forgot-password {
@@ -1007,7 +1013,6 @@ input[type="radio"] {
     align-items: center;
     justify-content: center;
     padding: 0;
-
 }
 
     .toggle-journal:hover, .delete-note-btn:hover {
@@ -1065,7 +1070,7 @@ input[type="radio"] {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    resize: both; /* Позволяет изменять высоту */
+    resize: both;
 }
 
 /* Галерея изображений */
@@ -1091,15 +1096,22 @@ input[type="radio"] {
 
 @media (max-width: 600px) {
     .text_block {
-        width: 100%; /* Делает блок полным на мобильных устройствах */
+        width: 100%;
+        background: rgba(255, 255, 255, 0.1);
     }
 
-    .journal-content {
-        display: block;
-        gap: 50px; /* Отступ между текстом и фото */
-        /*align-items: flex-start;*/ /* Выравниваем по верху */
-        height: min-content;
-    }
+        .text_block textarea {
+            color: black;
+            height: min-content;
+        }
+
+        .journal-content {
+            display: block;
+            gap: 50px; /* Отступ между текстом и фото */
+            /*align-items: flex-start;*/ /* Выравниваем по верху */
+            height: min-content;
+            background: rgba(255, 255, 255, 0.5);
+        }
 
 
     .text_block_description {
@@ -1118,30 +1130,4 @@ input[type="radio"] {
 }
 
 
-    .delete-note-btn{
-
-    }
-
-    /*
-.add-note-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    width: fit-content;
-}
-*/
-    /* Стили для кнопки "+" */
-    /*.journal_images .plus {
-        width: 100px;
-        height: 100px;
-        border: 2px dashed #ccc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: #aaa;
-    }*/
-    
+  
